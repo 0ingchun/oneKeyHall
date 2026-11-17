@@ -1,0 +1,18 @@
+tmp/
+host/server.stdout.log
+host/server.stderr.log
+host/node_modules/
+
+# Compiler outputs belong in tmp/, not release folders.
+firmware/build*/firmware.ino.*
+__pycache__/
+*.pyc
+
+# Local design locks, deployment output and incident evidence.
+~$*
+_site/
+*.dmp
+*.etl
+*.evtx
+.env
+.env.*

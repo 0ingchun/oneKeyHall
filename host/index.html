@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>oneKeyHall · 磁轴控制台</title><link rel="icon" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/hall.css"><script type="module" src="./assets/app.mjs"></script>
+</head><body>
+<header class="site-header"><nav class="navbar" aria-label="主导航"><a class="brand" href="./"><span>one</span>KeyHall</a><div class="nav-actions"><a href="./assets/protocol.html" target="_blank" rel="noopener">串口指令表</a><a href="https://github.com/0ingchun/oneKeyHall" target="_blank" rel="noopener noreferrer">开源仓库</a><button id="connect" class="connect-button">连接设备</button><label class="language-picker"><span class="sr-only">Language / 语言</span><select id="language" aria-label="Language / 语言" data-i18n-ignore><option value="zh-CN">中文</option><option value="en">English</option></select></label><label class="theme-picker"><span class="sr-only">主题</span><select id="theme" aria-label="主题"><option value="system">主题 · 自动</option><option value="light">浅色</option><option value="dark">深色</option></select></label></div></nav></header>
+<main>
+<section class="card device-card"><div class="section-top"><h1>设备信息</h1><span id="connection-state" class="badge">未连接设备</span></div><div class="device-stats"><div><span>固件版本</span><strong id="firmware-version" class="secondary">—</strong><small id="config-version">oneKeyHall · 磁轴固件</small></div><div><span>BootLoader</span><strong id="boot-version" class="secondary">—</strong><small>从设备引导区读取</small></div><div><span>芯片序列号</span><strong id="chip-uid" class="secondary" data-i18n-ignore>—</strong><small>默认名称使用此序列号</small></div><div><span>累计释放次数</span><strong id="count">—</strong><small>连接时约每 0.5 秒更新 · 保存配置后断电保留</small></div></div><label class="inline-label">设备名称 <input id="device-name" type="text" maxlength="12" placeholder="oneKeyHall" disabled></label><p id="device-name-note" class="subnote">连接后读取名称。</p><div class="device-actions"><button id="test-toggle" aria-pressed="false" aria-controls="keyboard-test">打开键盘测试</button><div><button id="reload" disabled>加载配置</button><button id="cancel" disabled>放弃待应用修改</button><button id="save" class="primary" disabled>保存配置</button></div></div><p id="session-state" class="subnote">参数修改后自动应用，不写入断电保存区；点击“保存配置”后断电保留。</p></section>
+<section id="keyboard-test" class="card" hidden><div class="section-top"><h2>键盘测试</h2><div class="test-tools"><span id="test-status" class="badge">测试已关闭</span><button id="test-clear">清空记录</button></div></div><p>无需连接串口。打开测试后，按键会显示按下、释放提示和当前组合键。</p><div id="test-capture" tabindex="0" role="group" aria-label="键盘测试区"><span>点击这里，然后按下键盘</span><div id="test-held" aria-live="polite">暂无按住的按键</div></div><div class="test-summary"><span>按下 <b id="test-down-count">0</b> 次</span><span>释放 <b id="test-up-count">0</b> 次</span><span>长按自动重复不重复计数</span></div><div class="two-columns test-columns"><div><h3>最近事件</h3><ol id="test-events" class="event-list" aria-label="最近键盘事件"></ol></div><label class="test-text-label">文本输出测试<textarea id="test-text" data-keyboard-test-input rows="6" placeholder="点击这里，测试键盘的文本或组合键输入。"></textarea></label></div><p class="subnote">记录当前页面收到的所有键盘事件，不能区分来自哪一把键盘。系统拦截的组合键（如 Alt+Tab）可能无法完整捕获；切换窗口时会清除按住状态。编辑其他设置时不会拦截输入，Tab 可正常切换焦点。</p></section>
+<p id="message" class="notice" role="status" aria-live="polite">请使用桌面版 Chrome 或 Edge，连接已刷入 oneKeyHall v2 固件的键盘。</p>
+<section class="card hall-monitor"><div class="section-top"><h2>磁轴实时监测</h2><span class="badge">P1.5 · AIN2</span></div><div class="dashboard" aria-label="实时监测">
+<div class="travel-card"><div class="section-top"><h2>实时行程</h2><span id="key-state" class="badge">等待设备</span></div><div class="travel-number"><span id="position">—</span><small>%</small></div><div class="track" role="progressbar" aria-label="校准相对行程" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="travel-fill"></div><i id="act-marker" title="触发点"></i><i id="release-marker" title="固定释放点"></i><i id="rt-release-marker" class="rt-line rt-release" title="RT 抬起释放线" hidden></i><i id="rt-press-marker" class="rt-line rt-press" title="RT 再次按下线" hidden></i></div><p class="muted">0% 松开 · 100% 压到底 <span id="trigger-legend" class="legend">紫线首次触发 / 灰线固定释放</span></p><div id="rt-legend" class="rt-legend" hidden><span class="release-label">RT 抬起 <b id="rt-release-value">—</b></span><span class="press-label">RT 再按 <b id="rt-press-value">—</b></span><p id="rt-line-note"></p></div><p id="armed-state" class="subnote">完成两点校准后显示相对行程。</p></div>
+<div class="metrics"><div><span>原始 ADC</span><strong id="adc">—</strong><small>8 位 · 0–255</small></div><div><span>滤波 ADC</span><strong id="filtered">—</strong><small>设备实时采样</small></div><div><span>有效校准跨度</span><strong id="span">—</strong><small id="resolution">至少 16 个计数</small></div></div></div></section>
+<fieldset id="controls" disabled>
+<section class="card calibration"><div class="section-top"><div><p class="eyebrow">01 / CALIBRATE</p><h2>磁轴校准</h2></div><span id="calibration-state" class="badge">未读取</span></div><p>进入校准会暂停键盘输出。每次采样时保持轴体静止；采集完底部后自动应用，点击“保存配置”后断电保留。</p><div class="steps"><button id="begin">开始校准 / 暂停输出</button><button id="rest" disabled>① 松开轴体，采集顶部</button><button id="bottom" disabled>② 压住到底，采集底部</button></div><div class="calibration-span-box"><div><span>有效跨度</span><strong id="calibration-span">—</strong></div><p id="calibration-span-note">完成顶部和底部采集后显示；最低要求 16 个 ADC 计数。</p></div><p class="subnote" id="endpoints">顶部 ADC — / 底部 ADC —</p></section>
+<div class="two-columns">
+<section class="card"><p class="eyebrow">02 / ACTUATION</p><h2>触发手感</h2><div class="fields">
+<label>按下触发点 <span class="input-unit"><input id="actuation" type="number" min="5" max="95" value="50" required>%</span></label>
+<label>固定释放点 <span class="input-unit"><input id="release" type="number" min="1" max="94" value="40" required>%</span></label>
+<label>顶部死区 <span class="input-unit"><input id="top" type="number" min="1" max="10" value="3" required>%</span></label>
+<label>滤波强度 <select id="filter"><option value="0">关闭 · 响应最快</option><option value="1">轻度</option><option value="2" selected>标准</option><option value="3">平滑</option></select></label>
+<label>状态确认采样数 <input id="debounce" type="number" min="1" max="10" value="2" required></label></div><p class="subnote">释放点必须低于触发点。上电、校准或修改设置后，需先松回顶部死区才会启用按键。</p></section>
+<section class="card"><div class="section-top"><div><p class="eyebrow">03 / RAPID TRIGGER</p><h2>快速触发 RT</h2></div><label class="toggle"><input id="rapid" type="checkbox">启用</label></div><p>首次越过触发点后，抬起指定距离即释放，再向下移动指定距离即可重新触发。</p><div class="fields"><label>重新按下距离 <span class="input-unit"><input id="retrigger" type="number" min="1" max="50" value="5" required>%</span></label><label>抬起释放距离 <span class="input-unit"><input id="rapid-release" type="number" min="1" max="50" value="5" required>%</span></label></div><p class="subnote" id="rt-minimum">固件会把 RT 距离限制为至少 2 个 ADC 计数，以减少噪声误触发。</p><p class="subnote">RT 使用顶部死区复位，不使用固定释放点；不能与双击模式同时启用。</p></section></div>
+<section class="card"><p class="eyebrow">04 / KEY MAPPING</p><h2>按键映射</h2><label class="inline-label">工作模式 <select id="key-select"><option value="0">直接使用 KEY1</option><option value="1">直接使用 KEY2</option><option value="2">单击 KEY1 / 双击 KEY2</option><option value="3">线性模式</option></select></label><div id="double-click-settings" hidden><label class="inline-label">双击间隔 <span class="input-unit"><input id="double-click-ms" type="number" min="50" max="1000" step="10" value="200" required>ms</span></label><p id="double-click-note" class="subnote"></p></div><div class="two-columns" id="key-editors"></div>
+<div id="linear-panel" hidden>
+<h3>设备线性控制</h3><p>参数修改后自动应用到键盘，松回顶部即可运行；点击“保存配置”后断电保留。无需安装伴随程序，也无需保持网页或串口连接。</p>
+<p id="linear-support" class="subnote"></p>
+<fieldset id="linear-fields"><div class="fields"><label>预设<select id="linear-preset">
+<option value="0">音量 · 松开最低，压到底最高</option><option value="1">音量反向 · 松开最高，压到底最低</option>
+<option value="2">滚轮向上 · 松开停止，越深越快</option><option value="3">滚轮向下 · 松开停止，越深越快</option>
+<option value="4" selected>当前光标 · 按住鼠标左键</option><option value="5">固定位置触控 · 接触面积越深越大</option>
+<option value="6">固定位置触控 · 压力越深越强</option><option value="7">固定位置触控 · 面积与压力联动</option></select></label></div>
+<label class="toggle"><input id="linear-reverseOnDoubleClick" type="checkbox" disabled>双击切换反向</label><p id="linear-reverse-support" class="subnote"></p><p id="linear-direction" class="subnote">等待设备</p>
+<p id="linear-count-note" class="subnote">线性模式下，有效按下再释放会累计一次；使用触发点、释放点或 RT 判定。设置暂停和 ADC 故障不计数，保存配置后次数断电保留。</p>
+<p class="subnote">使用上方磁轴设置的顶部死区。当前光标点击使用触发点、释放点和 RT；其余预设按死区外的连续行程计算。</p>
+<div id="linear-volume-fields" hidden><div class="fields">
+<label>最低音量（%）<input id="linear-volumeMin" type="number" min="0" max="100" value="0"></label>
+<label>最高音量（%）<input id="linear-volumeMax" type="number" min="0" max="100" value="100"></label>
+<label>0 → 100% 的音量步数<input id="linear-volumeSteps" type="number" min="1" max="100" value="50"></label></div>
+<p class="subnote">通过 USB 媒体音量键近似映射，无法读取系统实际百分比。启用后先连续降低音量约 2 秒归零，再追随行程；默认按每次 2%（50 步）估算。用系统滑块或其他键盘调音量后，可重新同步。反向预设松开时会调到最高设定音量。</p></div>
+<div id="linear-wheel-fields" class="fields" hidden><label>压到底的滚轮速度（格/秒）<input id="linear-wheelMax" type="number" min="1" max="100" value="30"></label></div>
+<p id="linear-cursor-note" class="subnote">鼠标原本在哪，就在那里按下左键；松开磁轴后释放。设备不移动光标，不读取屏幕宽高。这是普通鼠标按住，可拖动，没有触摸面积或压力。</p>
+<div id="linear-touch-fields" hidden><p class="notice">面积和压力目前仅支持固定 X / Y 触控位置。当前光标预设只是鼠标左键，不含面积或压力；免伴随程序的 USB 触屏无法读取系统光标位置。</p><div class="fields">
+<label>固定位置 X（屏幕宽度 %）<input id="linear-x" type="number" min="0" max="100" step="0.01" value="50"></label>
+<label>固定位置 Y（屏幕高度 %）<input id="linear-y" type="number" min="0" max="100" step="0.01" value="50"></label>
+<label>最小接触面积（屏幕面积 %）<input id="linear-areaMin" type="number" min="0.01" max="2.5" step="0.01" value="0.01"></label>
+<label>最大接触面积（屏幕面积 %）<input id="linear-areaMax" type="number" min="0.01" max="2.5" step="0.01" value="0.25"></label>
+<label>最小压力（0–255）<input id="linear-pressureMin" type="number" min="0" max="255" value="1"></label>
+<label>最大压力（0–255）<input id="linear-pressureMax" type="number" min="0" max="255" value="255"></label></div>
+<p class="subnote">USB 单点触屏输入：从死区外开始接触，回到顶部抬起，按住期间更新面积和压力。仅压力预设使用最小面积；仅面积预设使用最大压力。X / Y 以系统为此触屏映射的显示器为准，多屏可在系统触控设置中调整。接触宽高按各自屏幕轴比例计算，面积为量化近似值；应用可能忽略面积或压力。这不是实际牛顿力，也不是触控笔。</p></div></fieldset>
+<div class="linear-preview"><strong id="linear-preview">等待行程</strong><div id="linear-touch-preview" hidden><span id="linear-dot"></span></div><p id="linear-preview-note" class="subnote"></p></div>
+<div class="linear-actions"><button id="linear-sync" type="button" disabled hidden>重新同步音量</button></div>
+<p class="subnote"><a href="./assets/touch-test.html" target="_blank" rel="noopener">打开触控接收测试页</a>。参数修改后自动应用，点击“保存配置”后断电保留；关闭网页不会停止设备输出。</p>
+</div></section>
+<section class="card lighting-card"><p class="eyebrow">05 / LIGHTING</p><h2>RGB 灯效</h2>
+<input id="rgb-mode" type="hidden" value="2">
+<div class="lighting-modes" role="radiogroup" aria-label="灯效模式">
+<label>固定模式 <input type="radio" name="rgb-effect" value="0"></label>
+<label>呼吸模式 <input type="radio" name="rgb-effect" value="1"></label>
+<label>HUE 渐变模式 <input type="radio" name="rgb-effect" value="2" checked></label>
+<label>行程亮度 <input type="radio" name="rgb-effect" value="3" disabled></label>
+<label>反向亮度 <input type="radio" name="rgb-effect" value="4" disabled></label>
+<label>行程颜色 <input type="radio" name="rgb-effect" value="5" disabled></label>
+<label>颜色亮度联动 <input type="radio" name="rgb-effect" value="6" disabled></label></div>
+<p id="rgb-support" class="subnote">线性灯效需要 V2.5.0 或更新固件，自动应用后可脱离网页运行，保存后断电保留。</p>
+<div class="lighting-sliders"><div id="rgb-channels">
+<label class="lighting-slider channel-r"><span>R</span><input id="rgb-r" type="range" min="0" max="255" step="1" value="255"><output id="rgb-r-value" for="rgb-r">255</output></label>
+<label class="lighting-slider channel-g"><span>G</span><input id="rgb-g" type="range" min="0" max="255" step="1" value="255"><output id="rgb-g-value" for="rgb-g">255</output></label>
+<label class="lighting-slider channel-b"><span>B</span><input id="rgb-b" type="range" min="0" max="255" step="1" value="255"><output id="rgb-b-value" for="rgb-b">255</output></label>
+<label class="color-picker-label">选择颜色 <input id="rgb-color" type="color" value="#ffffff"></label></div>
+<label class="lighting-slider"><span>亮度</span><input id="brightness" type="range" min="0" max="255" step="1" value="128"><output id="brightness-value" for="brightness">128</output></label>
+<div id="rgb-animation"><label class="lighting-slider"><span>步进</span><input id="rgb-step" type="range" min="1" max="255" step="1" value="1"><output id="rgb-step-value" for="rgb-step">1</output></label>
+<label class="lighting-slider"><span>间隔</span><input id="rgb-interval" type="range" min="1" max="255" step="1" value="30"><output id="rgb-interval-value" for="rgb-interval">30 ms</output></label></div></div>
+<div id="rgb-hue" hidden><label class="lighting-slider"><span>松开色相</span><input id="rgb-hue-start" type="range" min="0" max="255" value="0"><output id="rgb-hue-start-value">0</output></label><label class="lighting-slider"><span>压到底色相</span><input id="rgb-hue-end" type="range" min="0" max="255" value="170"><output id="rgb-hue-end-value">170</output></label><p class="subnote">色相 0–255 沿色环线性变化；交换两端可反转颜色方向。</p></div>
+<div class="lighting-preview"><span class="swatch-shell"><i id="rgb-swatch"></i></span><span id="rgb-preview-note"></span></div>
+<p class="subnote">拖动滑条后自动更新设备灯光；点击“保存配置”后断电保留。步进越大、间隔越小，动画越快。</p></section>
+</fieldset>
+<section class="card"><p class="eyebrow">06 / FIRMWARE</p><h2>固件更新</h2>
+<div class="firmware-file"><h3>获取最新固件</h3><p>下载本网站发布的最新 HEX 文件，再用烧录工具更新设备。无需连接键盘。</p>
+<a id="firmware-download" class="firmware-download" href="./firmware/latest.hex" download="oneKeyHall-latest.hex">下载最新固件（HEX）</a>
+<p class="subnote">此按钮只下载文件，不会让键盘进入 ISP 或执行烧录。</p></div>
+<h3>进入设备下载模式</h3><p>进入下载模式后，请使用 CH54x-55x 烧录工具更新固件。进入前请先保存需要保留的设备配置。</p><button id="bootloader" disabled>进入下载模式</button><p id="boot-support" class="subnote">连接后检查固件支持情况。</p><h3 style="margin-top:20px">最近下载请求（刷新后清空）</h3><p id="boot-result" class="subnote" role="status" aria-live="polite" style="white-space:pre-wrap;overflow-wrap:anywhere"></p><p class="subnote">此操作会关闭 LED 并断开当前串口连接，不会自动烧录固件。按钮仅在设备已连接且固件支持时启用。</p></section>
+<section class="card"><h2>恢复出厂设置</h2><p>清除设备名称、磁轴校准、按键映射、灯光、线性参数和累计释放次数，并立即保存。完成后需要重新校准，拔插 USB 后恢复默认名称。</p><button id="factory-reset" disabled>恢复出厂设置</button><p id="factory-reset-support" class="subnote">连接设备后可恢复出厂设置。</p></section>
+<section class="card about-card"><h2>About</h2><p>这里是键盘的控制面板。保留原版键盘测试、按键映射和灯光设置，并增加磁轴校准、快速触发及固件下载入口。</p></section><footer><span class="footer-brand">oneKeyHall</span>相对行程由两点 ADC 校准估算，磁场随实际位移可能非线性，不能视为毫米测量。<br>页面只连接你主动选择的串口；未连接时不显示模拟设备数据。</footer>
+</main><div id="test-toast" class="test-toast" role="status" aria-live="polite" hidden></div></body></html>

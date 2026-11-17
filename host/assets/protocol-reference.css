@@ -1,0 +1,9 @@
+.reference-table { width:100%; border-collapse:collapse; font-size:14px; }
+.reference-table td,.reference-table th { padding:12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+.reference-table th { color:var(--primary); }
+.reference-table td:first-child { white-space:nowrap; font-family:ui-monospace,monospace; }
+.reference-scroll { overflow-x:auto; }
+.reference-table code, .protocol-frame { overflow-wrap:anywhere; font-family:ui-monospace,monospace; }
+.reference-table td:last-child { min-width:170px; }
+.protocol-frame { padding:16px; border-radius:12px; background:var(--soft); white-space:pre-wrap; }
+@media(max-width:600px) { .reference-table td,.reference-table th { padding:10px 8px; } }

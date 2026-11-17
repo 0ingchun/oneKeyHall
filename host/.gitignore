@@ -1,0 +1,7 @@
+server.stdout.log
+server.stderr.log
+node_modules/
+
+native/bin/
+native/obj/
+native/out/

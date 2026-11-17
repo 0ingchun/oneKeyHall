@@ -1,0 +1,66 @@
+收件人：tech@wch.cn
+主题：问题报告：WCHISPStudio 4.0 在主板 SerialNumber 为 null 时启动崩溃（0xC0000005 / RVA 0x996A）
+
+WCH 技术支持团队，您好：
+
+使用 WCHISPStudio 4.0 时遇到启动即崩溃的问题。已定位到主板序列号为 null 时的空指针访问，请协助转交维护团队确认并修复。
+
+一、现象与环境
+- 运行原始 WchIspStudio.exe，在进入“MCU 系列选择”主页之前退出。
+- 文件版本：4.0.0.0，32 位，PE 时间戳 0x6A192F07。
+- 系统：Windows 11 家庭中文版，26H2，10.0.26300.9974。
+- 主板：MECHREVO MRID6-23；Win32_BaseBoard.SerialNumber 实测为 null。
+- CPU：AMD Ryzen 7 7745HX。
+- Windows 应用程序日志多次记录异常 0xC0000005，故障偏移 0x0000996A。
+- 安装目录原 EXE 与本地安装包解出的对应文件 SHA-256 一致，原文件厂商签名有效。
+
+二、复现方法
+在主板序列号为空的本机启动未经修改的 WchIspStudio.exe，即可重复观察到上述崩溃。没有修改 BIOS、SMBIOS 或 WMI 数据来制造条件；尚未在其他电脑验证。
+
+只读检查命令：
+Get-CimInstance Win32_BaseBoard | Select-Object Manufacturer,Product,SerialNumber
+
+预期：读取不到主板序列号时仍能进入主页。
+
+三、定位证据
+程序包含查询：
+SELECT SerialNumber FROM Win32_BaseBoard
+
+CDB 捕获崩溃指令：
+WchIspStudio+0x996a:
+mov al, byte ptr [ecx]
+ECX = 00000000
+
+关键代码路径（地址为模块 RVA）：
++0x9921  test ebx,ebx
++0x9923  je +0x9946
++0x9946  xor ebx,ebx
++0x9948  mov edx,ebx
++0x994A  jmp +0x9965
++0x9965  mov ecx,edx
++0x996A  mov al,byte ptr [ecx]
+
+结合 WMI 返回值和反汇编，空值分支将指针置零后仍进入字符串扫描，导致读取地址 0。此结论来自本地调试与反汇编，尚未经厂商源码确认。
+
+四、本地验证
+在原 EXE 的独立副本中，将 RVA 0x9923 的指令由“74 21”改为“74 75”，使空值分支跳到已有的 RVA 0x999A 清理路径（VariantClear），避开字符串扫描。对应文件偏移 0x8D24，仅修改 1 字节。
+
+修复副本成功创建主窗口，标题显示“MCU 系列选择”，并持续响应。原始 EXE 完整保留。本地副本为验证性补丁，不具有有效厂商签名，未对外分发。
+
+同安装包中的 CH54x/CH55x 独立工具也可启动。本次未逐一点击验证芯片入口，未进行硬件烧录、擦除或校验。
+
+原始 EXE SHA-256：
+E01BD0830B60A79CBAD3E27C596DC09EB1B65BC9A44EE85189717E82A17F054D
+
+本地安装包 WCHISPTool_Setup.exe SHA-256：
+8D2004251DCB59D43C63A132F341A76DCA99B863FC03C1556987B679E8AFAC95
+
+五、修复请求
+请检查 WMI 返回的 HRESULT、VARIANT 类型及 BSTR 指针，覆盖 VT_EMPTY、VT_NULL、空 BSTR、零长度字符串和查询失败情况。在缺失非必要硬件标识时继续显示主页，并正确清理资源。
+
+希望能提供正式签名修复版本或官方兼容方案，并告知是否可复现及预计修复版本。
+
+此前已通过另一个邮箱反馈同一问题，本次重新发送，请以本邮件的发件邮箱作为后续联系地址。
+
+感谢协助！
+

@@ -1,0 +1,50 @@
+name: Deploy webhost to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'host/**'
+      - 'tests/**'
+      - 'firmware/firmware.ino'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Test webhost
+        run: npm --prefix host test
+      - name: Prepare static website
+        shell: bash
+        run: |
+          mkdir -p _site/firmware
+          cp host/index.html _site/index.html
+          cp -R host/assets _site/assets
+          cp host/firmware/latest.hex _site/firmware/latest.hex
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,19 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>oneKeyHall 触控接收测试</title>
+<style>body{font:16px system-ui;background:#191e24;color:#d2d8e2;margin:24px}h1{font-size:24px}#pad{position:relative;height:55vh;border:2px dashed #9b9aff;border-radius:20px;touch-action:none;overflow:hidden;display:grid;place-items:center}#dot{position:absolute;background:#9b9aff;border:1px solid white;pointer-events:none;transform:translate(-50%,-50%)}pre{white-space:pre-wrap}p{line-height:1.7}button{padding:10px}small{color:#a3aabb}</style>
+<label style="float:right;margin-left:12px" data-i18n-ignore><select id="language" aria-label="Language / 语言" style="font:inherit;padding:8px;border-radius:8px"><option value="zh-CN">中文</option><option value="en">English</option></select></label><h1>触控接收测试</h1><p>此页只显示浏览器实际收到的 PointerEvent，不产生输入。将设备的固定触控坐标设在下方区域内并保存，再按下磁轴；无需保持配置页打开。当前光标点击预设只会产生 mouse 事件。若显示 mouse，或压力/面积不变，说明当前输入路径或浏览器未传递对应触控信息。</p>
+<div id="pad">触摸测试区<span id="dot" hidden></span></div><pre id="values">等待输入</pre><button id="clear">清空记录</button><pre id="events"></pre>
+<small>Web PointerEvent 的 width/height 为 CSS 像素、pressure 为 0–1，可能经过浏览器或系统处理，不等于原始 Windows 触控结构。</small>
+<script type="module">
+import { mountLanguage } from './i18n.mjs';
+mountLanguage(document, window);
+const pad=document.querySelector('#pad'), dot=document.querySelector('#dot'), values=document.querySelector('#values'), events=document.querySelector('#events'); let history=[];
+for(const type of ['pointerdown','pointermove','pointerup','pointercancel'])pad.addEventListener(type,e=>{
+ if(type==='pointermove'&&!e.buttons)return;
+ if(type==='pointerdown')pad.setPointerCapture(e.pointerId);
+ const box=pad.getBoundingClientRect(); dot.hidden=type==='pointerup'||type==='pointercancel';
+ dot.style.left=`${e.clientX-box.left}px`;dot.style.top=`${e.clientY-box.top}px`;dot.style.width=`${Math.max(2,e.width)}px`;dot.style.height=`${Math.max(2,e.height)}px`;dot.style.opacity=String(.15+.85*e.pressure);
+ const text=`${type} · 类型 ${e.pointerType} · 压力 ${e.pressure.toFixed(3)} · 接触 ${e.width.toFixed(1)} × ${e.height.toFixed(1)} CSS px · 坐标 ${e.clientX}, ${e.clientY}`; values.textContent=text;
+ if(type!=='pointermove'){history.push(text);history=history.slice(-12);events.textContent=history.join('\n');}
+});
+document.querySelector('#clear').onclick=()=>{history=[];events.textContent='';};
+</script></html>
