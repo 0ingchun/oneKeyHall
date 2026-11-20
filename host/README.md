@@ -1,6 +1,6 @@
 # oneKeyHall 本地 Web 上位机
 
-这是适配本项目磁轴固件的原生网页控制台，当前配套固件为 V2.6.2、配置 V06。入口为 `index.html`，业务代码在 `assets/app.mjs`，串口协议在 `assets/protocol.mjs`，样式在 `assets/hall.css`。不依赖 npm 包，不需要打包。
+这是适配本项目磁轴固件的原生网页控制台，当前配套版本见[自动生成的发布信息](../docs/CURRENT_RELEASE.md)。入口为 `index.html`，业务代码在 `assets/app.mjs`，串口协议在 `assets/protocol.mjs`，样式在 `assets/hall.css`。不依赖 npm 包，不需要打包。
 
 双击 `start.cmd`，或在本目录执行 `npm start`，然后用桌面 Edge / Chrome 打开 http://127.0.0.1:5173 。需要 Node.js 18 或更新版本。
 
@@ -8,7 +8,7 @@
 
 当前仅保留 oneKeyHall 网页实现；旧原站镜像及 Windows 伴随程序已清理。
 
-运行 `npm test` 可执行当前 60 项 Node 测试，覆盖串口协议、键盘事件、RT、设备设置、线性/灯光、双语、自动应用和恢复出厂设置。测试不连接硬件。
+运行 `npm test` 可执行当前 64 项 Node 测试，覆盖串口协议、键盘事件、RT、设备设置、线性/灯光、双语、自动应用和恢复出厂设置。测试不连接硬件。
 
 本地服务仅监听 127.0.0.1。端口占用时先检查是否已运行；修改端口可在 PowerShell 执行 `$env:PORT = '5174'` 后再执行 `npm start`。
 
@@ -28,7 +28,7 @@
 
 启用 RT 后，实时行程条增加抬起释放和再次按下参数线。新版固件上报极值，用高亮线指出下一次实际阈值；旧固件显示参考线。未应用的参数标记为预览。相关实现分别在 `assets/keyboard-test.mjs`、`assets/rt-markers.mjs`、`assets/theme.mjs`。
 
-若下载按钮仍为灰色，可查看旁边的固件能力值。当前默认发布的 2.6.2 固件是 0xFF，支持 ISP；设备需先刷入支持该命令的固件再重新连接，网页本身无法升级它。默认固件的历史取证步骤见 [取证说明](../docs/REPRO_CAPTURE.md)。
+若下载按钮仍为灰色，可查看旁边的固件能力值。固件能力与发布版本见[当前发布信息](../docs/CURRENT_RELEASE.md)，ISP 对应能力 bit 0；设备需先刷入支持该命令的固件再重新连接，网页本身无法升级它。默认固件的历史取证步骤见 [取证说明](../docs/REPRO_CAPTURE.md)。
 
 下载按钮下新增带 UTC 时间的请求记录：用户取消、请求等待、成功 ACK、串口关闭或失败原因。最近 12 条只保存在当前页面内存中，刷新清空，并移除旧版 localStorage 记录。它不证明 ISP 枚举成功，也不能替代断电取证。按钮不会自动打开烧录软件；CH55xDuino 文档提示 BootLoader 可能超时退出：https://github.com/DeqingSun/ch55xduino#driver-for-windows 。
 
@@ -44,13 +44,15 @@ V2.5.0 起提供独立的 BootLoader 版本、40 位芯片序列号和四种行�
 
 设备改名、双击间隔与校准/灯效用法见 [项目 README](../README.md)。网页兼容 V02–V06 格式磁轴固件，各功能按设备能力和配置格式启用，不支持旧机械轴固件。
 
-项目显示名称和默认输入文本为 oneKeyHall；默认设备名称在该前缀后附加芯片序列号。当前版本变化见 [V2.6.1 说明](../docs/RELEASE_2.6.1.md)。
+项目显示名称和默认输入文本为 oneKeyHall；默认设备名称在该前缀后附加芯片序列号。当前版本见[自动生成的发布信息](../docs/CURRENT_RELEASE.md)。
 
 ## 发布最新固件供下载
 
-网页“固件更新”新增“下载最新固件（HEX）”，无需连接设备。把新版 HEX 命名为 `latest.hex`，放进 [firmware 文件夹](firmware/README.md)，覆盖旧文件即可。固定下载地址为 http://127.0.0.1:5173/firmware/latest.hex ，保存名为 `oneKeyHall-latest.hex`。此地址只在本地服务运行时可用，不是公网地址。
+网页“固件更新”显示发布版本，并提供无需连接设备的 HEX 下载。版本来自构建时自动生成的 `assets/release.mjs`；串口指令表共用该数据，设备版本仍实际查询串口。
 
-当前下载槽提供 V2.6.1 ISP 固件。修改 `server.mjs` 后需重启服务；修改前端后刷新网页；仅替换 HEX 不需重启。本地服务直接返回文件且禁用缓存，编译不自动发布。文件下载与进入设备 ISP 是独立操作。
+运行根目录的 `scripts/build_firmware.ps1` 会自动同步构建 HEX、`firmware/latest.hex`、`assets/release.mjs` 和 `docs/CURRENT_RELEASE.md`。发布前执行 `node scripts/sync-release.mjs --check`；GitHub Pages 工作流也执行该检查，阻止版本与 HEX 不一致的部署。下载地址保持 `firmware/latest.hex`，保存名自动带应用版本。详见[发布目录说明](firmware/README.md)。
+
+这是本地文件同步，不会自动推送或部署。前端更新后刷新网页；更新本地服务代码或版本模块后重启服务。功能最低版本和历史变更记录不会随当前发布版本替换。
 
 ## 中英文切换
 

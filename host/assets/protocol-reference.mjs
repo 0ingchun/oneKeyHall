@@ -1,3 +1,4 @@
+import { release, configLabel } from './release.mjs';
 import { mountLanguage } from './i18n.mjs';
 import { commands, fields, status, presets, errors, capabilities } from './protocol-reference-data.mjs';
 const language = mountLanguage(document, window);
@@ -18,13 +19,13 @@ function render() {
     element.append(head, body); wrap.append(element); parent.append(wrap);
   }
   const intro = section(t('串口指令表', 'Serial command reference'));
-  paragraph(intro, '适用 oneKeyHall V2.6.0，配置格式 V06。本页仅供查阅，不连接或操作设备。', 'For oneKeyHall V2.6.0, configuration format V06. Reference only: this page does not connect to or control a device.');
+  paragraph(intro, `适用 oneKeyHall V${release.version}，配置格式 ${configLabel}。本页仅供查阅，不连接或操作设备。`, `For oneKeyHall V${release.version}, configuration format ${configLabel}. Reference only: this page does not connect to or control a device.`);
   paragraph(intro, 'USB CDC：VID 0x1209 / PID 0xC550，57600 波特率，DTR=1。请求使用十进制 {key:value}，key/value 各最多 3 位，支持分片和连续帧。每次等待对应应答后再发送下一条；不要用固定延时假设完成。', 'USB CDC: VID 0x1209 / PID 0xC550, 57600 baud, DTR=1. Requests use decimal {key:value}, up to 3 digits each. Fragmented and adjacent frames are supported. Wait for the matching reply before sending the next request; do not assume completion after a fixed delay.');
-  code(intro, '{999:5} → [1003,2,6,2,1]\n{999:10} → [1000,10,0]\n{92:60} → [1000,92,0]\n{999:13} → [1000,13,0]');
+  code(intro, `{999:5} → ${release.versionReply}\n{999:10} → [1000,10,0]\n{92:60} → [1000,92,0]\n{999:13} → [1000,13,0]`);
   const cmd = section(t('全部命令：key = 999', 'All commands: key = 999'));
   table(cmd, [t('请求','Request'),t('名称','Name'),t('行为 / 前提','Behavior / prerequisites'),t('响应','Response')], commands.map(r => [`{999:${r[0]}}`,r[en?2:1],r[en?4:3],r[5]]));
   paragraph(cmd, '0/13 仅能在设置会话内且不在采样中调用。11/12 异步完成后才应答。60 秒无协议请求或关闭串口会放弃未应用设置。固件支持命令 99；成功应答只确认请求已接受，不确认 ISP 枚举。1200 波特率自动跳转已禁用。', 'Commands 0/13 require settings mode with no capture in progress. Commands 11/12 reply after asynchronous capture completes. After 60 seconds without a protocol request, or on closing the port, unapplied settings are discarded. The firmware supports command 99. A successful reply confirms acceptance, not ISP enumeration. Automatic 1200-baud entry is disabled.');
-  const config = section(t('全部配置字节：key = 0–136', 'All configuration bytes: key = 0–136'));
+  const config = section(t(`全部配置字节：key = 0–${release.configLength - 1}`, `All configuration bytes: key = 0–${release.configLength - 1}`));
   paragraph(config, '读取用 {999:1}。写入用 {索引:字节值}，字节值 0–255。普通写入需先执行 10，不能在端点采集中写入；0–3 与 89–91 只读，校准字段只能由 11/12 更新。全部修改完成后执行 13 应用或 0 保存，14 放弃。超出字节/索引范围的普通写入可能无应答，不要发送。', 'Read with {999:1}. Write with {index:byte}, where byte is 0–255. Begin with command 10; do not write during endpoint capture. Indices 0–3 and 89–91 are read-only; calibration fields are updated only by 11/12. Finish with 13 to apply, 0 to save, or 14 to cancel. Out-of-range byte/index writes may receive no reply and must not be sent.');
   table(config,[t('索引','Index'),t('含义与范围','Meaning and range')],fields.map(r => [r[0],r[en?2:1]]));
   paragraph(config, '键码：32–126 为可打印 ASCII；128–135 为左右 Ctrl/Shift/Alt/Win；136 及以上编码转换为 HID usage = 编码 − 136。例如 Enter=176、Tab=179、方向右/左/下/上=215/216/217/218。文本支持最多 30 个 ASCII 字节，不支持中文文本。', 'Key codes: 32–126 are printable ASCII; 128–135 are left/right Ctrl/Shift/Alt/Win; codes 136 and above map to HID usage = code − 136. Examples: Enter=176, Tab=179, right/left/down/up=215/216/217/218. Text supports at most 30 ASCII bytes, not Chinese text.');

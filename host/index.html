@@ -79,7 +79,7 @@
 </fieldset>
 <section class="card"><p class="eyebrow">06 / FIRMWARE</p><h2>固件更新</h2>
 <div class="firmware-file"><h3>获取最新固件</h3><p>下载本网站发布的最新 HEX 文件，再用烧录工具更新设备。无需连接键盘。</p>
-<a id="firmware-download" class="firmware-download" href="./firmware/latest.hex" download="oneKeyHall-latest.hex">下载最新固件（HEX）</a>
+<a id="firmware-download" class="firmware-download" href="./firmware/latest.hex" download="oneKeyHall-latest.hex">下载最新固件（HEX）</a> <span id="published-firmware-version"></span>
 <p class="subnote">此按钮只下载文件，不会让键盘进入 ISP 或执行烧录。</p></div>
 <h3>进入设备下载模式</h3><p>进入下载模式后，请使用 CH54x-55x 烧录工具更新固件。进入前请先保存需要保留的设备配置。</p><button id="bootloader" disabled>进入下载模式</button><p id="boot-support" class="subnote">连接后检查固件支持情况。</p><h3 style="margin-top:20px">最近下载请求（刷新后清空）</h3><p id="boot-result" class="subnote" role="status" aria-live="polite" style="white-space:pre-wrap;overflow-wrap:anywhere"></p><p class="subnote">此操作会关闭 LED 并断开当前串口连接，不会自动烧录固件。按钮仅在设备已连接且固件支持时启用。</p></section>
 <section class="card"><h2>恢复出厂设置</h2><p>清除设备名称、磁轴校准、按键映射、灯光、线性参数和累计释放次数，并立即保存。完成后需要重新校准，拔插 USB 后恢复默认名称。</p><button id="factory-reset" disabled>恢复出厂设置</button><p id="factory-reset-support" class="subnote">连接设备后可恢复出厂设置。</p></section>

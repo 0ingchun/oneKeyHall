@@ -4,7 +4,7 @@
 
 支持可调触发点、快速触发 RT、按键映射、设备内线性控制和行程灯效。配置完成后，键盘可独立运行，无需常驻网页或额外安装伴随程序。
 
-[项目仓库](https://github.com/0ingchun/oneKeyHall) · [固件文件](firmware/build/onekeyhall-ch552-24mhz.hex) · [版本说明](docs/RELEASE_2.6.2.md) · [串口协议](docs/HALL_PROTOCOL.md)
+[项目仓库](https://github.com/0ingchun/oneKeyHall) · [固件文件](firmware/build/onekeyhall-ch552-24mhz.hex) · [当前发布信息](docs/CURRENT_RELEASE.md) · [串口协议](docs/HALL_PROTOCOL.md)
 
 ## 功能
 
@@ -24,7 +24,7 @@
 | 恢复出厂 | 清除全部设备配置和累计次数，立即保存；重新校准后使用 |
 | 固件更新 | 下载网站发布的 HEX 文件，支持手动请求设备进入 ISP |
 
-当前固件为 **V2.6.2**，配置格式 **V06**。只发布一个默认支持 ISP 的版本，文件为 `firmware/build/onekeyhall-ch552-24mhz.hex`。
+当前应用版本、配置格式与镜像哈希见[自动生成的发布信息](docs/CURRENT_RELEASE.md)。只发布一个默认支持 ISP 的版本，文件为 `firmware/build/onekeyhall-ch552-24mhz.hex`。
 
 ## 硬件
 
@@ -177,13 +177,17 @@ V2.6.2 起，在“按键映射 → 工作模式”中选择“完全关闭模�
 
 ### 发布新的下载文件
 
-将要发布的 HEX 复制为 `host/firmware/latest.hex`：
+运行 `scripts/build_firmware.ps1` 成功后，会自动更新 `host/firmware/latest.hex`、网页发布信息 `host/assets/release.mjs` 和 `docs/CURRENT_RELEASE.md`。网页页头、版本查询示例、能力值和下载版本从这份生成信息读取，无需手改。设备连接区域的固件版本仍由设备实际应答获取。
+
+发布前运行：
 
 ```powershell
-Copy-Item firmware/build/onekeyhall-ch552-24mhz.hex host/firmware/latest.hex -Force
+node scripts/sync-release.mjs --check
 ```
 
-网页下载路径为相对于站点入口的 `firmware/latest.hex`，浏览器保存名为 `oneKeyHall-latest.hex`。GitHub Pages 项目站点会带上仓库路径，例如 `/oneKeyHall/firmware/latest.hex`。**编译不会自动更新这个下载文件**，应在确认构建结果后手动发布。详见 [固件发布目录说明](host/firmware/README.md)。
+检查源码版本、构建 HEX、网页 HEX 和发布信息是否一致；不一致时拒绝部署。使用 Arduino IDE 编译时，先将结果放到 `firmware/build/onekeyhall-ch552-24mhz.hex`，再运行 `node scripts/sync-release.mjs --write` 同步本地发布文件。直接替换 `latest.hex` 会触发一致性检查失败。
+
+下载路径保持 `firmware/latest.hex`，下载文件名自动包含发布版本。构建和同步只更新本地文件，不会自动提交、推送或部署。详见[固件发布目录说明](host/firmware/README.md)。
 
 ## 部署网页
 
@@ -198,7 +202,7 @@ Copy-Item firmware/build/onekeyhall-ch552-24mhz.hex host/firmware/latest.hex -Fo
 3. 在 **Actions → Deploy webhost to GitHub Pages → Run workflow** 手动触发首次部署，选择 `main`。后续向 `main` 推送网页、测试或工作流修改会自动部署。
 4. 工作流成功后打开 Pages 显示的 HTTPS 地址。本仓库使用默认项目地址时为 `https://0ingchun.github.io/oneKeyHall/`；此处是部署后的预期地址，不表示已上线。
 
-工作流先运行网页测试，再发布静态文件，不编译或烧录固件。发布新固件时先更新 `host/firmware/latest.hex` 再提交。主页面、指令表、触控测试和下载链接均使用相对路径，兼容项目子路径、本地服务及自定义域名。
+工作流先检查发布信息与固件一致，再运行网页测试并发布静态文件，不编译或烧录固件。发布新固件时先完成本地构建与自动同步，再提交。主页面、指令表、触控测试和下载链接均使用相对路径，兼容项目子路径、本地服务及自定义域名。
 
 访问在线网页时无需安装或运行 Node.js。使用支持 Web Serial 的桌面 Chrome / Edge，点击“连接设备”并选择本机串口；更换站点后需要重新选择设备。网页仍可校准、修改和保存配置，进入 ISP 后的实际烧录仍使用烧录工具。
 
@@ -212,7 +216,7 @@ Copy-Item firmware/build/onekeyhall-ch552-24mhz.hex host/firmware/latest.hex -Fo
 | --- | --- |
 | Framework preset | None |
 | 项目根目录 | 仓库根目录 |
-| Build command | `exit 0` |
+| Build command | `node scripts/sync-release.mjs --check && npm --prefix host test` |
 | Build output directory | `host` |
 
 部署后访问站点根路径；`server.mjs` 仅用于本地启动，无需在 Pages 上运行。也可只上传 `host/index.html`、`host/assets/` 和 `host/firmware/latest.hex`，保持目录结构。
@@ -221,7 +225,7 @@ Copy-Item firmware/build/onekeyhall-ch552-24mhz.hex host/firmware/latest.hex -Fo
 
 ## 编译固件
 
-已验证的工具链为 Arduino CLI 1.2.0、CH55xDuino 0.0.16、SDCC build.13407。先安装 [CH55xDuino 开发板支持](https://github.com/DeqingSun/ch55xduino)，在项目根目录执行：
+构建脚本需要 Node.js 18 或更新版本，用于生成网页发布信息。已验证的工具链为 Arduino CLI 1.2.0、CH55xDuino 0.0.16、SDCC build.13407。先安装 [CH55xDuino 开发板支持](https://github.com/DeqingSun/ch55xduino)，在项目根目录执行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/build_firmware.ps1
@@ -265,7 +269,7 @@ python scripts/run_tests.py
 npm --prefix host test
 ```
 
-当前验证包括 CH552 目标编译、43 组固件逻辑测试、USB / ROM / 文本输入测试及 60 项 Node 测试。测试不连接真实设备。完整 V2.6.2 的实机验证状态见版本说明，主机测试不等于实际 ADC、USB 枚举或触控应用验证。
+当前验证包括 CH552 目标编译、43 组固件逻辑测试、USB / ROM / 文本输入测试及 64 项 Node 测试。测试不连接真实设备。完整 V2.6.2 的实机验证状态见版本说明，主机测试不等于实际 ADC、USB 枚举或触控应用验证。
 
 - 行程是两点 ADC 校准得到的相对百分比，不是毫米测量；磁铁位移与磁场不一定线性。
 - 采样采用主循环时间检查，不应将网页刷新率或 1 ms 采样间隔理解为实测输入延迟。

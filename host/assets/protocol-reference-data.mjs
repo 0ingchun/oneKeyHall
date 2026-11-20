@@ -1,3 +1,5 @@
+import { release } from './release.mjs';
+
 export const commands = [
   [
     0,
@@ -11,9 +13,9 @@ export const commands = [
     1,
     "读取配置",
     "Read configuration",
-    "返回 137 个字节；索引 2–3 是实时累计释放次数。",
-    "Returns 137 bytes; indices 2–3 contain the live release count.",
-    "[6,...]"
+    `返回 ${release.configLength} 个字节；索引 2–3 是实时累计释放次数。`,
+    `Returns ${release.configLength} bytes; indices 2–3 contain the live release count.`,
+    `[${release.configVersion},...]`
   ],
   [
     2,
@@ -35,17 +37,17 @@ export const commands = [
     4,
     "读取能力位",
     "Read capability bits",
-    "当前 V2.6.2 支持 ISP，能力值 255。",
-    "Current V2.6.2 supports ISP; capability bits: 255.",
+    `当前 V${release.version}，能力值 ${release.capabilities}；ISP 支持状态见 bit 0。`,
+    `Current V${release.version}; capability bits: ${release.capabilities}. Bit 0 indicates ISP support.`,
     "[1002,bits]"
   ],
   [
     5,
     "读取应用版本",
     "Read application version",
-    "最后一项固定为 1，表示支持 ISP；界面仅显示版本号。",
-    "The final field is always 1, indicating ISP support. The UI displays the version number only.",
-    "[1003,2,6,2,1]"
+    `最后一项为 ${Number(release.isp)}，表示 ISP 支持状态；界面仅显示版本号。`,
+    `The final field is ${Number(release.isp)}, indicating ISP support. The UI displays the version number only.`,
+    release.versionReply
   ],
   [
     6,
@@ -99,8 +101,8 @@ export const commands = [
     15,
     "恢复出厂设置",
     "Restore factory settings",
-    "V2.6.2 起支持；采样中拒绝。清除全部配置、校准、名称和计数，写入并校验 DataFlash；无需设置会话。完成后重新校准，拔插 USB 更新名称。",
-    "From V2.6.2; rejected during capture. Clears settings, calibration, name and count, then saves/verifies DataFlash. No settings session required. Recalibrate and reconnect USB for the default name.",
+    "V2.6.1 起支持；采样中拒绝。清除全部配置、校准、名称和计数，写入并校验 DataFlash；无需设置会话。完成后重新校准，拔插 USB 更新名称。",
+    "From V2.6.1; rejected during capture. Clears settings, calibration, name and count, then saves/verifies DataFlash. No settings session required. Recalibrate and reconnect USB for the default name.",
     "ACK"
   ],
   [
@@ -123,8 +125,8 @@ export const commands = [
 export const fields = [
   [
     "0",
-    "配置格式 6，只读；V04/V05 同为 137 字节。",
-    "Config format 6, read-only; V04/V05 also use 137 bytes."
+    `配置格式 ${release.configVersion}，只读；当前 ${release.configLength} 字节。`,
+    `Config format ${release.configVersion}, read-only; currently ${release.configLength} bytes.`
   ],
   [
     "1",
@@ -151,7 +153,7 @@ export const fields = [
     "自定义名称长度：0–12 个 BMP 字符；0 自动使用 oneKeyHall 加 UID。",
     "Custom name length: 0–12 BMP characters; 0 uses oneKeyHall plus UID."
   ],
-  ["7", "V2.6.2 起：bit 1 关闭灯光，其余位必须为 0；允许 0 或 2，默认 0，可保存。关闭模拟输入使用工作模式 4。", "Since V2.6.2: bit 1 disables lighting; all other bits must be 0. Allowed values: 0 or 2; default 0, persisted. Use work mode 4 to disable simulated input."],
+  ["7", "V2.6.2 起：bit 1 关闭灯光，其余位必须为 0；允许 0 或 2，默认 0，可保存。网页“完全关闭灯光”对应 {7:2}，选择其他灯效时发 {7:0} 并设置字段 14。关闭模拟输入使用工作模式 4。", "Since V2.6.2: bit 1 disables lighting; all other bits must be 0. Allowed values: 0 or 2; default 0, persisted. The web lighting-off option sends {7:2}; choosing another effect sends {7:0} and sets field 14. Use work mode 4 to disable simulated input."],
   [
     "8–9",
     "保留，不使用、不持久化。",
@@ -169,8 +171,8 @@ export const fields = [
   ],
   [
     "14",
-    "灯效：0 常亮，1 呼吸，2 时间色相，3 行程亮度，4 反向亮度，5 行程色相，6 颜色亮度联动。",
-    "LED: 0 solid, 1 breathing, 2 timed hue, 3 travel brightness, 4 inverse brightness, 5 travel hue, 6 hue and brightness."
+    "灯效：0 常亮，1 呼吸，2 时间色相，3 行程亮度，4 反向亮度，5 行程色相，6 颜色亮度联动。关闭灯光用字段 7；网页关闭选项的 UI 值 7 不是此字段的有效值，不要发送 {14:7}。",
+    "LED: 0 solid, 1 breathing, 2 timed hue, 3 travel brightness, 4 inverse brightness, 5 travel hue, 6 hue and brightness. Use field 7 to turn lighting off; UI option 7 is not a valid value for this field. Do not send {14:7}."
   ],
   [
     "15–16",

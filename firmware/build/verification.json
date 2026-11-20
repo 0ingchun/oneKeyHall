@@ -44,17 +44,18 @@
     "firmware/src/userUsbHidKeyboard/USBHIDKeyboard.h": "7984e4b2d9bd89cda37f1aa1c67d456c0246b6b125f0f7ddded3f08060a609b5",
     "firmware/src/userUsbHidKeyboard/WS2812.c": "ea7e6977c1156c86ea4c2a1f60ab44991c742fa77856bf371a8100268d75742a",
     "firmware/src/userUsbHidKeyboard/WS2812.h": "a22ba4045912e87b724f7b791026dcc43c60b139f39768bf4e8c10771482e6be",
-    "scripts/build_firmware.ps1": "e7609876ba5e71552511373ce9f262544ff858ccf22a712b5d9019c8d02dce9b"
+    "scripts/build_firmware.ps1": "5325e48387e593bfcade79f40bb0a9bdb82fe951abe032da9230f9dd933e55df",
+    "scripts/sync-release.mjs": "1919bde27b6c9f5fbcfa73443d26bd2f6600a2a84e1ca8d2965c3fc70c305b29"
   },
   "host_firmware_scenario_groups": 43,
-  "node_total_tests": 60,
+  "node_total_tests": 64,
   "validation": [
     "Production firmware host tests pass; Hall/RT/LED/ROM/USB/HID/text scenarios retained",
     "Optional reversal across all supported presets, two pairs of clicks, disabled/cursor behavior, release count and no automatic flash write",
     "50/1000 ms double-click windows, exact deadline, 16-bit wrap and long idle expiry; ADC/settings cancellation",
     "Production volume/wheel/touch HID reports in the mocked host harness reverse while touch still lifts at rest",
     "Opt-in persistence with names/LEDs, runtime reset, V05 migration and 13-field status",
-    "60 current Node tests: V06/legacy config, checkbox gating, reverse preview, status lengths and full bilingual serial reference coverage",
+    "64 current Node tests: V06/legacy config, checkbox gating, reverse preview, status lengths and full bilingual serial reference coverage",
     "Protocol reference commands match all firmware cases; config index ranges cover every byte 0..136 exactly once",
     "JS syntax, unique DOM ids/static app refs, isolated HTTP protocol page/assets and published HEX byte match/no-store checks passed",
     "Factory reset restores every config byte, clears count/calibration and persists across startup; capture rejection is non-mutating",
@@ -62,7 +63,8 @@
     "Factory reset UI checks application version, requires bilingual confirmation and cancels pending auto-apply; failure propagates without retry",
     "Static page navigation, ES module dependencies and firmware download resolve under both / and /oneKeyHall/; GitHub Pages workflow prepared, not remotely deployed.",
     "Disabled output work mode: fixed/RT valid releases counted without HID across all retained linear presets; shallow travel, ADC faults and settings pauses excluded; count saved across restart; held input released and release required before resume. Independent lighting off covers all effects and command 2. Persistence, rollback, factory reset and four Node tests cover version gating, flags and mode validation.",
-    "Lighting off radio: all seven retained effects round-trip, preview stays dark, hidden parameters survive, selecting another effect clears the flag, and unsupported firmware is gated. 60 Node tests passed after this UI change."
+    "Lighting off radio: all seven retained effects round-trip, preview stays dark, hidden parameters survive, selecting another effect clears the flag, and unsupported firmware is gated. 60 Node tests passed after this UI change.",
+    "Release metadata generated from firmware source and checked against compiled HEX; build synchronizes published HEX and release page. Four Node groups cover LF/CRLF equivalence, stale version/capability rejection, malformed HEX rejection and dynamic bilingual reference data. Rebuild produced identical firmware."
   ],
   "manual_isp_enabled": true,
   "baud1200_entry_enabled": false,
@@ -153,5 +155,14 @@
     "dataflash_light_off_bit": 6,
     "hardware_verified": false,
     "lighting_ui": "Exclusive off option alongside other effects; UI value 7 maps to config[7] bit 1, retaining config[14]. Existing V2.6.2 firmware unchanged."
+  },
+  "release_metadata": {
+    "source": "firmware/src/FirmwareVersion.h",
+    "generator": "scripts/sync-release.mjs",
+    "web_module": "host/assets/release.mjs",
+    "generated_document": "docs/CURRENT_RELEASE.md",
+    "deploy_check": true,
+    "rebuilt_hex_identical": true,
+    "remotely_deployed": false
   }
 }

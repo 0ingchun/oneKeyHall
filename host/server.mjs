@@ -2,6 +2,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { release } from './assets/release.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 5173);
@@ -26,7 +27,7 @@ const server = http.createServer(async (req, res) => {
       }
       res.writeHead(200, {
         'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename="oneKeyHall-latest.hex"',
+        'Content-Disposition': `attachment; filename="oneKeyHall-${release.version}.hex"`,
         'Content-Length': firmware.length,
         'Cache-Control': 'no-store',
         'X-Content-Type-Options': 'nosniff',

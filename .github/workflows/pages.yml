@@ -6,7 +6,8 @@ on:
     paths:
       - 'host/**'
       - 'tests/**'
-      - 'firmware/firmware.ino'
+      - 'firmware/**'
+      - 'scripts/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -31,6 +32,8 @@ jobs:
         with:
           node-version: '22'
           package-manager-cache: false
+      - name: Verify release metadata and firmware
+        run: node scripts/sync-release.mjs --check
       - name: Test webhost
         run: npm --prefix host test
       - name: Prepare static website

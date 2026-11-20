@@ -1,5 +1,6 @@
 param([string]$ArduinoCli = '')
 $ErrorActionPreference = 'Stop'
+if (!(Get-Command node -ErrorAction SilentlyContinue)) { throw 'Node.js is required to generate web release metadata.' }
 $projectRoot = Split-Path -Parent $PSScriptRoot
 if (!$ArduinoCli) {
     $cliCommand = Get-Command arduino-cli -ErrorAction SilentlyContinue
@@ -15,5 +16,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Firmware build failed. No firmware was flashed
 $hexFile = Join-Path $outputDirectory 'onekeyhall-ch552-24mhz.hex'
 Copy-Item -LiteralPath (Join-Path $buildDirectory 'firmware.ino.hex') -Destination $hexFile -Force
 Copy-Item -LiteralPath (Join-Path $buildDirectory 'firmware.ino.mem') -Destination (Join-Path $outputDirectory 'memory-usage.txt') -Force
+& node (Join-Path $PSScriptRoot 'sync-release.mjs') --write
+if ($LASTEXITCODE -ne 0) { throw 'Firmware built, but web release synchronization failed. Do not publish yet.' }
 Get-FileHash -LiteralPath $hexFile -Algorithm SHA256
 Write-Output 'Build complete. This script does not upload or touch any serial device.'

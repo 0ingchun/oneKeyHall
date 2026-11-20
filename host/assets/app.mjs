@@ -1,3 +1,4 @@
+import { release as publishedRelease } from './release.mjs';
 import { supportsOutputSwitches } from './output-switches.mjs';
 import { mountLanguage } from './i18n.mjs';
 import { SerialClient, validateConfig } from './protocol.mjs';
@@ -16,6 +17,8 @@ const $ = id => document.getElementById(id);
 const language = mountLanguage(document, window);
 mountKeyboardTest(document, window);
 mountTheme(document, window);
+$('published-firmware-version').textContent = `V${publishedRelease.version}`;
+$('firmware-download').download = `oneKeyHall-${publishedRelease.version}.hex`;
 const lighting = mountLighting(document);
 let bootStorage;
 try { bootStorage = window.localStorage; } catch {}
