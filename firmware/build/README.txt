@@ -1,10 +1,11 @@
-oneKeyHall 2.6.1 - default release (ISP enabled)
+oneKeyHall 2.6.2 - default release (ISP enabled)
 
 CH552 / 24 MHz internal / 5V / USER USB RAM 266B.
 Config V06: 137 bytes on wire, 128 bytes DataFlash including CRC.
-Current source: firmware. Usage: docs/RELEASE_2.6.1.md.
+Current source: firmware. Usage: docs/RELEASE_2.6.2.md.
 Manual ISP enabled; automatic 1200-baud entry disabled.
 Preserve DataFlash when upgrading to retain calibration/name/settings.
+WCHISPTool options and first-flash/upgrade steps: README.md, Quick start / Flash firmware.
 Compile/host-model validation only; not flashed or hardware verified.
 Prior host shutdown cause remains unresolved.
 

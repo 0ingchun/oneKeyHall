@@ -22,7 +22,7 @@
 <label>滤波强度 <select id="filter"><option value="0">关闭 · 响应最快</option><option value="1">轻度</option><option value="2" selected>标准</option><option value="3">平滑</option></select></label>
 <label>状态确认采样数 <input id="debounce" type="number" min="1" max="10" value="2" required></label></div><p class="subnote">释放点必须低于触发点。上电、校准或修改设置后，需先松回顶部死区才会启用按键。</p></section>
 <section class="card"><div class="section-top"><div><p class="eyebrow">03 / RAPID TRIGGER</p><h2>快速触发 RT</h2></div><label class="toggle"><input id="rapid" type="checkbox">启用</label></div><p>首次越过触发点后，抬起指定距离即释放，再向下移动指定距离即可重新触发。</p><div class="fields"><label>重新按下距离 <span class="input-unit"><input id="retrigger" type="number" min="1" max="50" value="5" required>%</span></label><label>抬起释放距离 <span class="input-unit"><input id="rapid-release" type="number" min="1" max="50" value="5" required>%</span></label></div><p class="subnote" id="rt-minimum">固件会把 RT 距离限制为至少 2 个 ADC 计数，以减少噪声误触发。</p><p class="subnote">RT 使用顶部死区复位，不使用固定释放点；不能与双击模式同时启用。</p></section></div>
-<section class="card"><p class="eyebrow">04 / KEY MAPPING</p><h2>按键映射</h2><label class="inline-label">工作模式 <select id="key-select"><option value="0">直接使用 KEY1</option><option value="1">直接使用 KEY2</option><option value="2">单击 KEY1 / 双击 KEY2</option><option value="3">线性模式</option></select></label><div id="double-click-settings" hidden><label class="inline-label">双击间隔 <span class="input-unit"><input id="double-click-ms" type="number" min="50" max="1000" step="10" value="200" required>ms</span></label><p id="double-click-note" class="subnote"></p></div><div class="two-columns" id="key-editors"></div>
+<section class="card"><p class="eyebrow">04 / KEY MAPPING</p><h2>按键映射</h2><label class="inline-label">工作模式 <select id="key-select"><option value="0">直接使用 KEY1</option><option value="1">直接使用 KEY2</option><option value="2">单击 KEY1 / 双击 KEY2</option><option value="3">线性模式</option><option value="4" id="output-off-mode" disabled>完全关闭模拟键鼠输出</option></select></label><p id="output-switch-support" class="subnote"></p><div id="double-click-settings" hidden><label class="inline-label">双击间隔 <span class="input-unit"><input id="double-click-ms" type="number" min="50" max="1000" step="10" value="200" required>ms</span></label><p id="double-click-note" class="subnote"></p></div><div class="two-columns" id="key-editors"></div>
 <div id="linear-panel" hidden>
 <h3>设备线性控制</h3><p>参数修改后自动应用到键盘，松回顶部即可运行；点击“保存配置”后断电保留。无需安装伴随程序，也无需保持网页或串口连接。</p>
 <p id="linear-support" class="subnote"></p>
@@ -62,14 +62,15 @@
 <label>行程亮度 <input type="radio" name="rgb-effect" value="3" disabled></label>
 <label>反向亮度 <input type="radio" name="rgb-effect" value="4" disabled></label>
 <label>行程颜色 <input type="radio" name="rgb-effect" value="5" disabled></label>
-<label>颜色亮度联动 <input type="radio" name="rgb-effect" value="6" disabled></label></div>
+<label>颜色亮度联动 <input type="radio" name="rgb-effect" value="6" disabled></label>
+<label>完全关闭灯光 <input type="radio" name="rgb-effect" value="7" disabled></label></div>
 <p id="rgb-support" class="subnote">线性灯效需要 V2.5.0 或更新固件，自动应用后可脱离网页运行，保存后断电保留。</p>
 <div class="lighting-sliders"><div id="rgb-channels">
 <label class="lighting-slider channel-r"><span>R</span><input id="rgb-r" type="range" min="0" max="255" step="1" value="255"><output id="rgb-r-value" for="rgb-r">255</output></label>
 <label class="lighting-slider channel-g"><span>G</span><input id="rgb-g" type="range" min="0" max="255" step="1" value="255"><output id="rgb-g-value" for="rgb-g">255</output></label>
 <label class="lighting-slider channel-b"><span>B</span><input id="rgb-b" type="range" min="0" max="255" step="1" value="255"><output id="rgb-b-value" for="rgb-b">255</output></label>
 <label class="color-picker-label">选择颜色 <input id="rgb-color" type="color" value="#ffffff"></label></div>
-<label class="lighting-slider"><span>亮度</span><input id="brightness" type="range" min="0" max="255" step="1" value="128"><output id="brightness-value" for="brightness">128</output></label>
+<label id="rgb-brightness" class="lighting-slider"><span>亮度</span><input id="brightness" type="range" min="0" max="255" step="1" value="128"><output id="brightness-value" for="brightness">128</output></label>
 <div id="rgb-animation"><label class="lighting-slider"><span>步进</span><input id="rgb-step" type="range" min="1" max="255" step="1" value="1"><output id="rgb-step-value" for="rgb-step">1</output></label>
 <label class="lighting-slider"><span>间隔</span><input id="rgb-interval" type="range" min="1" max="255" step="1" value="30"><output id="rgb-interval-value" for="rgb-interval">30 ms</output></label></div></div>
 <div id="rgb-hue" hidden><label class="lighting-slider"><span>松开色相</span><input id="rgb-hue-start" type="range" min="0" max="255" value="0"><output id="rgb-hue-start-value">0</output></label><label class="lighting-slider"><span>压到底色相</span><input id="rgb-hue-end" type="range" min="0" max="255" value="170"><output id="rgb-hue-end-value">170</output></label><p class="subnote">色相 0–255 沿色环线性变化；交换两端可反转颜色方向。</p></div>

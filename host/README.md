@@ -1,6 +1,6 @@
 # oneKeyHall 本地 Web 上位机
 
-这是适配本项目磁轴固件的原生网页控制台，当前配套固件为 V2.6.1、配置 V06。入口为 `index.html`，业务代码在 `assets/app.mjs`，串口协议在 `assets/protocol.mjs`，样式在 `assets/hall.css`。不依赖 npm 包，不需要打包。
+这是适配本项目磁轴固件的原生网页控制台，当前配套固件为 V2.6.2、配置 V06。入口为 `index.html`，业务代码在 `assets/app.mjs`，串口协议在 `assets/protocol.mjs`，样式在 `assets/hall.css`。不依赖 npm 包，不需要打包。
 
 双击 `start.cmd`，或在本目录执行 `npm start`，然后用桌面 Edge / Chrome 打开 http://127.0.0.1:5173 。需要 Node.js 18 或更新版本。
 
@@ -8,7 +8,7 @@
 
 当前仅保留 oneKeyHall 网页实现；旧原站镜像及 Windows 伴随程序已清理。
 
-运行 `npm test` 可执行当前 55 项 Node 测试，覆盖串口协议、键盘事件、RT、设备设置、线性/灯光、双语、自动应用和恢复出厂设置。测试不连接硬件。
+运行 `npm test` 可执行当前 60 项 Node 测试，覆盖串口协议、键盘事件、RT、设备设置、线性/灯光、双语、自动应用和恢复出厂设置。测试不连接硬件。
 
 本地服务仅监听 127.0.0.1。端口占用时先检查是否已运行；修改端口可在 PowerShell 执行 `$env:PORT = '5174'` 后再执行 `npm start`。
 
@@ -28,7 +28,7 @@
 
 启用 RT 后，实时行程条增加抬起释放和再次按下参数线。新版固件上报极值，用高亮线指出下一次实际阈值；旧固件显示参考线。未应用的参数标记为预览。相关实现分别在 `assets/keyboard-test.mjs`、`assets/rt-markers.mjs`、`assets/theme.mjs`。
 
-若下载按钮仍为灰色，可查看旁边的固件能力值。当前默认发布的 2.6.1 固件是 0xFF，支持 ISP；设备需先刷入支持该命令的固件再重新连接，网页本身无法升级它。默认固件的历史取证步骤见 [取证说明](../docs/REPRO_CAPTURE.md)。
+若下载按钮仍为灰色，可查看旁边的固件能力值。当前默认发布的 2.6.2 固件是 0xFF，支持 ISP；设备需先刷入支持该命令的固件再重新连接，网页本身无法升级它。默认固件的历史取证步骤见 [取证说明](../docs/REPRO_CAPTURE.md)。
 
 下载按钮下新增带 UTC 时间的请求记录：用户取消、请求等待、成功 ACK、串口关闭或失败原因。最近 12 条只保存在当前页面内存中，刷新清空，并移除旧版 localStorage 记录。它不证明 ISP 枚举成功，也不能替代断电取证。按钮不会自动打开烧录软件；CH55xDuino 文档提示 BootLoader 可能超时退出：https://github.com/DeqingSun/ch55xduino#driver-for-windows 。
 
@@ -71,3 +71,7 @@ V2.6.1 起支持页面下方的“恢复出厂设置”。确认后清除名称�
 ## 同仓库部署到 GitHub Pages
 
 使用仓库中的 `.github/workflows/pages.yml`，在 Settings → Pages 将 Source 设为 GitHub Actions。提交至 main 后运行该工作流，仅发布网页资源和 `firmware/latest.hex`。详细步骤见 [项目部署说明](../README.md#部署网页)。所有页面使用相对资源路径，支持 `/oneKeyHall/` 项目路径；用户用桌面 Chrome / Edge 打开 HTTPS 网页即可配置本机设备，无需本地 Node 服务。
+
+## 关闭输出与灯光模式
+
+V2.6.2 起，“按键映射 → 工作模式”新增“完全关闭模拟键鼠输出”，与 KEY1、KEY2、单/双击、线性并列；停止键鼠、音量、滚轮和触控输出，但仍累计有效释放次数，保留行程采样及串口配置。“RGB 灯效”中的“完全关闭灯光”与其他灯效并列，选择其他灯效即重新点亮；工作模式与灯效模式互不影响。修改自动应用，保存后断电保留。旧固件禁用新增关闭模式并提示升级。

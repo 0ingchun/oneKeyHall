@@ -35,8 +35,8 @@ export const commands = [
     4,
     "读取能力位",
     "Read capability bits",
-    "当前 V2.6.1 支持 ISP，能力值 255。",
-    "Current V2.6.1 supports ISP; capability bits: 255.",
+    "当前 V2.6.2 支持 ISP，能力值 255。",
+    "Current V2.6.2 supports ISP; capability bits: 255.",
     "[1002,bits]"
   ],
   [
@@ -45,7 +45,7 @@ export const commands = [
     "Read application version",
     "最后一项固定为 1，表示支持 ISP；界面仅显示版本号。",
     "The final field is always 1, indicating ISP support. The UI displays the version number only.",
-    "[1003,2,6,1,1]"
+    "[1003,2,6,2,1]"
   ],
   [
     6,
@@ -99,8 +99,8 @@ export const commands = [
     15,
     "恢复出厂设置",
     "Restore factory settings",
-    "V2.6.1 起支持；采样中拒绝。清除全部配置、校准、名称和计数，写入并校验 DataFlash；无需设置会话。完成后重新校准，拔插 USB 更新名称。",
-    "From V2.6.1; rejected during capture. Clears settings, calibration, name and count, then saves/verifies DataFlash. No settings session required. Recalibrate and reconnect USB for the default name.",
+    "V2.6.2 起支持；采样中拒绝。清除全部配置、校准、名称和计数，写入并校验 DataFlash；无需设置会话。完成后重新校准，拔插 USB 更新名称。",
+    "From V2.6.2; rejected during capture. Clears settings, calibration, name and count, then saves/verifies DataFlash. No settings session required. Recalibrate and reconnect USB for the default name.",
     "ACK"
   ],
   [
@@ -138,8 +138,8 @@ export const fields = [
   ],
   [
     "4",
-    "工作模式：0 KEY1，1 KEY2，2 单/双击，3 线性。",
-    "Work mode: 0 KEY1, 1 KEY2, 2 single/double click, 3 linear."
+    "工作模式：0 KEY1，1 KEY2，2 单/双击，3 线性，4 完全关闭模拟键鼠输出（V2.6.2 起，仍累计有效释放次数）。",
+    "Work mode: 0 KEY1, 1 KEY2, 2 single/double click, 3 linear, 4 disable simulated input (since V2.6.2; valid releases still counted)."
   ],
   [
     "5",
@@ -151,8 +151,9 @@ export const fields = [
     "自定义名称长度：0–12 个 BMP 字符；0 自动使用 oneKeyHall 加 UID。",
     "Custom name length: 0–12 BMP characters; 0 uses oneKeyHall plus UID."
   ],
+  ["7", "V2.6.2 起：bit 1 关闭灯光，其余位必须为 0；允许 0 或 2，默认 0，可保存。关闭模拟输入使用工作模式 4。", "Since V2.6.2: bit 1 disables lighting; all other bits must be 0. Allowed values: 0 or 2; default 0, persisted. Use work mode 4 to disable simulated input."],
   [
-    "7–9",
+    "8–9",
     "保留，不使用、不持久化。",
     "Reserved; unused and not persisted."
   ],

@@ -1,5 +1,11 @@
 // Exact source keys, translated as whole UI messages. Do not add user data.
 export const messages = new Map([
+["完全关闭模拟键鼠输出", "Disable all simulated input"],
+["完全关闭灯光", "Turn off all lighting"],
+["灯光已关闭；选择其他灯效即可恢复。", "Lighting is off. Select another effect to turn it on."],
+["关闭输出模式仍累计有效释放次数；灯光可独立关闭。自动应用，保存后断电保留。", "Disabled output mode still counts valid releases. Lighting can be disabled independently. Changes apply automatically; save to retain them after power loss."],
+["关闭输出和灯光模式需要 V2.6.2 或更新固件。", "Disabled output and lighting modes require firmware V2.6.2 or newer."],
+["模拟键鼠输出已关闭，仍可读取行程。", "Simulated input is disabled; travel remains readable."],
 ["恢复出厂设置", "Restore factory settings"],
 ["清除设备名称、磁轴校准、按键映射、灯光、线性参数和累计释放次数，并立即保存。完成后需要重新校准，拔插 USB 后恢复默认名称。", "Clear the device name, Hall calibration, key mappings, lighting, linear settings and release count, and save immediately. Recalibrate afterward; reconnect USB to restore the default name."],
 ["连接设备后可恢复出厂设置。", "Connect a device to restore factory settings."],

@@ -21,6 +21,64 @@ static void calibrated(uint8_t rest, uint8_t bottom) {
 /* IDENTITY_LIGHT_CASES */
 /* LINEAR_REVERSE_CASES */
 /* FACTORY_RESET_CASES */
+static void output_switch_tests(void) {
+    for (unsigned rt = 0; rt < 2; ++rt) {
+        for (unsigned preset = 0; preset < 8; ++preset) {
+            calibrated(100, 200); config[4] = 4; config[124] = preset;
+            config[94] = rt; load_hall_settings();
+            config[7] = 0; stop_keys(); samples(100, 20);
+            unsigned oldPresses = presses, oldPackets = hidPackets, oldCount = clickCount;
+            samples(200, 500); samples(100, 500);
+            assert(presses == oldPresses && hidPackets == oldPackets && clickCount == oldCount + 1);
+            assert(hall.raw == 100 && hall.armed);
+        }
+    }
+    for (unsigned rt = 0; rt < 2; ++rt) {
+        calibrated(100, 200); config[4] = 4; config[94] = rt; config[124] = 130;
+        load_hall_settings(); samples(100, 5);
+        samples(120, 5); samples(100, 5); assert(clickCount == 0);
+        samples(180, 5); samples(255, 5); samples(100, 5); assert(clickCount == 0);
+        samples(180, 5); command(999, 10); samples(100, 5); assert(clickCount == 0);
+        command(999, 14); samples(100, 5);
+        for (unsigned i = 0; i < 2; ++i) { samples(180, 5); samples(100, 5); }
+        assert(clickCount == 2 && !linearReverse && !presses && !hidPackets);
+        command(999, 10); command(999, 0); ack(0, 0);
+        setup(); assert(config[4] == 4 && clickCount == 2);
+        samples(100, 5); samples(180, 5); samples(160, 5);
+        assert(clickCount == (rt ? 3 : 2));
+        samples(100, 5); assert(clickCount == 3);
+    }
+    calibrated(100, 200); config[4] = 3; config[124] = 4;
+    samples(100, 20); samples(200, 30);
+    assert(hidLog[hidPackets - 1].bytes[0] == 1);
+    command(999, 10); command(4, 4); command(999, 13); ack(13, 0);
+    samples(200, 30); assert(hidLog[hidPackets - 1].bytes[0] == 0);
+    command(999, 10); command(4, 3); command(999, 13);
+    unsigned heldPackets = hidPackets; samples(200, 30); assert(hidPackets == heldPackets);
+    samples(100, 30); samples(200, 30); assert(hidLog[hidPackets - 1].bytes[0] == 1);
+    puts("PASS disabled output mode counts fixed/RT releases without input, releases held input and requires release before resume");
+    calibrated(100, 200);
+    for (unsigned mode = 0; mode <= 6; ++mode) {
+        config[14] = mode; config[7] = 0;
+        update_color_by_rgb((const CRGB *)(config + 10), 255);
+        config[7] = 2; now += 2000; handle_color_effect();
+        assert(!(shownLed[0] | shownLed[1] | shownLed[2]));
+        command(999, 2); assert(!(shownLed[0] | shownLed[1] | shownLed[2]));
+        config[7] = 0; update_color_by_rgb((const CRGB *)(config + 10), 255);
+        assert(shownLed[0] | shownLed[1] | shownLed[2]);
+        for (unsigned flags = 0; flags <= 2; flags += 2) {
+            config[7] = flags; config[4] = 4; config[17] = 2; config[53] = 3;
+            config2eeprom(); eeprom2config();
+            assert(config[4] == 4 && config[17] == 2 && config[53] == 3);
+            assert(config[7] == flags && config[14] == mode && validate_config());
+        }
+    }
+    puts("PASS all lights off including refresh command; flags persist independently of all seven effects");
+    command(999, 10); command(7, 4); command(999, 13); ack(13, 2);
+    command(999, 14); assert(config[7] == 2);
+    command(999, 15); ack(15, 0); assert(config[7] == 0);
+    puts("PASS invalid mute flags rejected, rollback restores flags and factory reset enables outputs");
+}
 int main(void) {
     memset(flash, 255, sizeof(flash)); adc = 128; setup();
     assert(pin15mode == INPUT && !config[89]);
@@ -89,7 +147,7 @@ int main(void) {
     calibrated(100, 200); config[4] = 3; assert(validate_config());
     samples(100, 3); samples(200, 10); assert(hall.position == 100 && hall.pressed && !presses);
     samples(100, 10); assert(!presses && clickCount == 1 && hall.position == 0);
-    config[4] = 4; assert(!validate_config()); config[4] = 3;
+    config[4] = 5; assert(!validate_config()); config[4] = 3;
     command(999, 10); command(999, 0); ack(0, 0); assert((flash[3] & 3) == 3);
     setup(); assert(config[4] == 3); samples(100, 5); samples(200, 5); assert(!presses);
     puts("PASS linear mode persists and reports analog travel without keyboard output");
@@ -161,7 +219,7 @@ int main(void) {
     }
     puts("PASS all 256 HUE values after integer-width optimization");
     command(999, 5);
-    assert(strcmp(tx, "[1003,2,6,1,1]\n") == 0);
+    assert(strcmp(tx, "[1003,2,6,2,1]\n") == 0);
     assert(config[0] == 6);
     puts("PASS firmware release query is independent of config format and declares manual ISP support");
     command(999, 4); assert(strcmp(tx, "[1002,255]\n") == 0);
@@ -193,6 +251,7 @@ int main(void) {
     identity_light_tests();
     linear_reverse_tests();
     factory_reset_tests();
+    output_switch_tests();
     assert(sizeof(HallSettings) == 11 && CONFIG_INDEX_LAST == 137);
     puts("All host firmware scenarios passed (hardware drivers are mocked).");
 }

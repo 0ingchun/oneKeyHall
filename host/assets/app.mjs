@@ -1,3 +1,4 @@
+import { supportsOutputSwitches } from './output-switches.mjs';
 import { mountLanguage } from './i18n.mjs';
 import { SerialClient, validateConfig } from './protocol.mjs';
 import { mountKeyboardTest } from './keyboard-test.mjs';
@@ -24,6 +25,7 @@ const bootFeedback = createBootFeedback(bootStorage, events => {
 let client = null, config = null, busy = false, polling = false, editing = false, restReady = false, timer;
 let canBoot = false;
 let canFactoryReset = false;
+let canOutputSwitches = false;
 let capabilityBits = null;
 let identity = null;
 let lastStatus = null;
@@ -38,7 +40,7 @@ const linear = mountLinear(document, () => !!client && !busy && !editing && !!(c
 function renderWorkMode() {
   const enabled = Number($('key-select').value) === 3;
   $('linear-panel').hidden = !enabled;
-  $('key-editors').hidden = enabled;
+  $('key-editors').hidden = enabled || Number($('key-select').value) === 4;
   $('double-click-settings').hidden = ![2, 3].includes(Number($('key-select').value));
   $('double-click-ms').disabled = !supportsDeviceSettings(config);
   $('double-click-note').textContent = supportsDeviceSettings(config) ? '从第一次按下到第二次按下，小于此间隔视为双击；达到间隔后才输出单击。默认 200 ms，步长 10 ms。RT 与双击互斥。' : '当前固件固定为 200 ms；升级 V2.3.0 后可修改。';
@@ -67,6 +69,8 @@ for (const number of [1, 2]) {
 function message(text, error = false) { $('message').textContent = text; $('message').classList.toggle('error', error); }
 function updateControls() {
   $('controls').disabled = !client || busy;
+  $('output-off-mode').disabled = !client || busy || !canOutputSwitches;
+  $('output-switch-support').textContent = canOutputSwitches ? '关闭输出模式仍累计有效释放次数；灯光可独立关闭。自动应用，保存后断电保留。' : '关闭输出和灯光模式需要 V2.6.2 或更新固件。';
   for (const id of ['reload', 'cancel', 'save']) $(id).disabled = !client || busy;
   $('save').disabled ||= calibrating;
   $('connect').disabled = busy;
@@ -79,7 +83,7 @@ function updateControls() {
   $('factory-reset-support').textContent = !client ? '连接设备后可恢复出厂设置。' : canFactoryReset ? '清除全部配置和计数并立即保存，完成后需要重新校准。' : '恢复出厂设置需要 V2.6.1 或更新固件。';
   $('boot-support').textContent = !client ? '连接后检查固件是否支持下载模式。' : capabilityBits === null ? '正在读取固件能力…' : canBoot ? `固件能力 0x${capabilityBits.toString(16).padStart(2, '0')}：支持进入下载模式。` : `固件能力 0x${capabilityBits.toString(16).padStart(2, '0')}：当前固件不支持软件进入下载模式。`;
   $('session-state').textContent = editing ? '设置中：键盘输出已暂停。离开或断线将放弃未应用的设置。' : '参数修改后自动应用，不写入断电保存区；点击“保存配置”后断电保留。';
-  lighting.support(!!client && !!(capabilityBits & 64) && config?.[0] >= 5);
+  lighting.support(!!client && !!(capabilityBits & 64) && config?.[0] >= 5, !!client && !busy && canOutputSwitches);
   renderWorkMode();
 }
 function setSelect(id, value) {
@@ -151,7 +155,8 @@ function readForm() {
   const c = [...config];
   writeDeviceSettings(c, $('device-name').value, Number($('double-click-ms').value));
   for (const [id, index] of Object.entries(binding)) c[index] = Number($(id).value);
-  lighting.write(c);
+  if (c[4] === 4 && !canOutputSwitches) throw new Error('关闭输出和灯光模式需要 V2.6.2 或更新固件。');
+  lighting.write(c, canOutputSwitches);
   if (c[14] >= 3 && !(capabilityBits & 64)) throw new Error('线性灯效需要 V2.5.0 或更新固件。');
   c[94] = Number($('rapid').checked);
   [c[10], c[11], c[12]] = $('rgb-color').value.slice(1).match(/../g).map(n => parseInt(n, 16));
@@ -183,7 +188,7 @@ async function action(task) {
 }
 async function disconnect(error) {
   autoApply.cancel(); calibrating = false;
-  canFactoryReset = false;
+  canFactoryReset = false; canOutputSwitches = false;
   clearTimeout(timer);
   const old = client; client = null; editing = restReady = canBoot = false;
   capabilityBits = null; identity = null;
@@ -222,7 +227,7 @@ async function poll() {
       document.querySelector('.track').setAttribute('aria-valuenow', s[5] ? s[3] : 0);
       $('key-state').textContent = s[9] ? 'ADC 异常' : s[7] ? '设置中 · 输出暂停' : !s[5] ? '尚未校准' : s[4] ? '已按下' : '已释放';
       $('key-state').classList.toggle('pressed', !!s[4]);
-      $('armed-state').textContent = s[9] ? 'ADC 接近 0 或 255，按键已释放。请检查信号。' : !s[5] ? '完成两点校准后才能启用磁轴。' : s[7] ? '完成校准后自动应用，然后松开轴体。' : s[6] ? '已就绪 · 按键输出启用' : '请先完全松开轴体，等待进入顶部死区。';
+      $('armed-state').textContent = s[9] ? 'ADC 接近 0 或 255，按键已释放。请检查信号。' : !s[5] ? '完成两点校准后才能启用磁轴。' : s[7] ? '完成校准后自动应用，然后松开轴体。' : config[4] === 4 ? '模拟键鼠输出已关闭，仍可读取行程。' : s[6] ? '已就绪 · 按键输出启用' : '请先完全松开轴体，等待进入顶部死区。';
       if (editing && !busy && !s[7]) { autoApply.cancel(); calibrating = editing = restReady = false; message('设备设置会话已结束，未应用修改已回退，请重新读取。', true); updateControls(); }
       linear.sample(s); lighting.sample(s);
       if (active !== client) return;
@@ -257,6 +262,7 @@ $('connect').addEventListener('click', () => action(async () => {
     $('device-name').placeholder = identity?.defaultName || 'oneKeyHall';
     const release = await client.firmwareVersion();
     canFactoryReset = supportsFactoryReset(release);
+    canOutputSwitches = supportsOutputSwitches(release);
     $('firmware-version').textContent = release ? `V${release.version}` : '未上报';
     $('connection-state').textContent = `${deviceName(config, identity)} · 已连接`;
     message(config[89] ? '连接成功。可查看实时数据，或调整触发手感。' : '连接成功。请先开始校准：采集松开和压到底两个端点。');

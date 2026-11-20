@@ -6,7 +6,7 @@
   "description": "Local Web Serial configuration console for oneKeyHall magnetic switch firmware",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test ../tests/protocol.test.mjs ../tests/ui.test.mjs ../tests/device-settings.test.mjs ../tests/device-linear.test.mjs ../tests/i18n.test.mjs ../tests/identity-light.test.mjs ../tests/linear-reverse.test.mjs ../tests/auto-apply.test.mjs ../tests/factory-reset.test.mjs ../tests/pages.test.mjs"
+    "test": "node --test ../tests/protocol.test.mjs ../tests/ui.test.mjs ../tests/device-settings.test.mjs ../tests/device-linear.test.mjs ../tests/i18n.test.mjs ../tests/identity-light.test.mjs ../tests/linear-reverse.test.mjs ../tests/auto-apply.test.mjs ../tests/factory-reset.test.mjs ../tests/pages.test.mjs ../tests/output-switches.test.mjs"
   },
   "engines": {
     "node": ">=18"

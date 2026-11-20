@@ -20,7 +20,7 @@ function render() {
   const intro = section(t('串口指令表', 'Serial command reference'));
   paragraph(intro, '适用 oneKeyHall V2.6.0，配置格式 V06。本页仅供查阅，不连接或操作设备。', 'For oneKeyHall V2.6.0, configuration format V06. Reference only: this page does not connect to or control a device.');
   paragraph(intro, 'USB CDC：VID 0x1209 / PID 0xC550，57600 波特率，DTR=1。请求使用十进制 {key:value}，key/value 各最多 3 位，支持分片和连续帧。每次等待对应应答后再发送下一条；不要用固定延时假设完成。', 'USB CDC: VID 0x1209 / PID 0xC550, 57600 baud, DTR=1. Requests use decimal {key:value}, up to 3 digits each. Fragmented and adjacent frames are supported. Wait for the matching reply before sending the next request; do not assume completion after a fixed delay.');
-  code(intro, '{999:5} → [1003,2,6,1,1]\n{999:10} → [1000,10,0]\n{92:60} → [1000,92,0]\n{999:13} → [1000,13,0]');
+  code(intro, '{999:5} → [1003,2,6,2,1]\n{999:10} → [1000,10,0]\n{92:60} → [1000,92,0]\n{999:13} → [1000,13,0]');
   const cmd = section(t('全部命令：key = 999', 'All commands: key = 999'));
   table(cmd, [t('请求','Request'),t('名称','Name'),t('行为 / 前提','Behavior / prerequisites'),t('响应','Response')], commands.map(r => [`{999:${r[0]}}`,r[en?2:1],r[en?4:3],r[5]]));
   paragraph(cmd, '0/13 仅能在设置会话内且不在采样中调用。11/12 异步完成后才应答。60 秒无协议请求或关闭串口会放弃未应用设置。固件支持命令 99；成功应答只确认请求已接受，不确认 ISP 枚举。1200 波特率自动跳转已禁用。', 'Commands 0/13 require settings mode with no capture in progress. Commands 11/12 reply after asynchronous capture completes. After 60 seconds without a protocol request, or on closing the port, unapplied settings are discarded. The firmware supports command 99. A successful reply confirms acceptance, not ISP enumeration. Automatic 1200-baud entry is disabled.');

@@ -87,7 +87,7 @@ void handle_single_click();
 void handle_double_click();
 void handle_linear_click();
 void handle_key_state(bool key_state, bool is_double_click);
-void update_value(__xdata uint8_t* value, uint8_t min_value, uint8_t max_value, uint8_t step, __xdata bool* increasing);
+void update_value(__xdata uint8_t* value, uint8_t max_value, uint8_t step, __xdata bool* increasing);
 void handle_color_effect();
 void update_color_by_rgb(const __xdata CRGB* rgb, uint8_t brightness);
 void update_color_by_hsv(const __xdata CHSV* hsv, uint8_t brightness);
@@ -166,13 +166,13 @@ void stop_keys() {
 }
 
 uint8_t validate_config() {
-    if (!linear_valid()) return 0;
+    if ((config[7] & 253) || !linear_valid()) return 0;
     if (config[5] < 5 || config[5] > 100 || config[6] > 12) return 0;
     for (uint8_t i = 0; i < config[6] * 2; i += 2) {
         uint8_t lo = config[100 + i], hi = config[101 + i];
         if ((hi >= 0xd8 && hi <= 0xdf) || (!hi && (lo < 32 || (lo >= 127 && lo < 160)))) return 0;
     }
-    if (config[4] > 3 || config[17] > 3 || config[53] > 3 || config[14] > 6) return 0;
+    if (config[4] > 4 || config[17] > 3 || config[53] > 3 || config[14] > 6) return 0;
     if (config[89] > 1 || config[92] < 5 || config[92] > 95 || config[93] >= config[92] ||
         config[99] < 1 || config[99] > 10 || config[93] < config[99] ||
         config[94] > 1 || config[95] < 1 || config[95] > 50 || config[96] < 1 || config[96] > 50 ||
@@ -202,7 +202,7 @@ void loop() {
         sample_hall();
         if (!settingsOpen) {
             if (config[4] == 2) handle_double_click();
-            else if (config[4] == 3) handle_linear_click();
+            else if (config[4] >= 3) handle_linear_click();
             else handle_single_click();
         }
     }
@@ -244,7 +244,7 @@ void handle_linear_click() {
     if (hall.pressed == previousButton) return;
     previousButton = hall.pressed;
     if (!hall.pressed) { ++clickCount; return; }
-    if (!(config[124] & 128)) return;
+    if (config[4] == 4 || !(config[124] & 128)) return;
     if (doubleState) { linearReverse ^= 1; doubleState = 0; }
     else { doubleState = 1; doubleTime = millis(); }
 }
@@ -287,7 +287,7 @@ void handle_key_state(bool key_state, bool is_double_click) {
     }
 }
 
-void update_value(__xdata uint8_t* value, uint8_t min_value, uint8_t max_value, uint8_t step, __xdata bool* increasing) {
+void update_value(__xdata uint8_t* value, uint8_t max_value, uint8_t step, __xdata bool* increasing) {
     int16_t _value = *value;
     if (*increasing) {
         _value += step;
@@ -297,8 +297,8 @@ void update_value(__xdata uint8_t* value, uint8_t min_value, uint8_t max_value, 
         }
     } else {
         _value -= step;
-        if (_value <= min_value) {
-            _value = min_value;
+        if (_value <= 0) {
+            _value = 0;
             *increasing = true;
         }
     }
@@ -311,6 +311,10 @@ void handle_color_effect() {
     static __xdata bool increasing = true;                // 方向标志，true 表示递增，false 表示递减
     static __xdata uint8_t currentBrightness = 0;         // 仅在亮度呼吸效果中使用
     static __xdata CHSV currentHSVColor = {0, 255, 255};  // 仅在 hue 渐变效果中使用
+    if (!config[14] || (config[7] & 2)) {
+        update_color_by_rgb((const __xdata CRGB *)(config + 10), config[13]);
+        return;
+    }
     if (config[14] >= 3) {
         uint8_t mode = config[14], position = hall.position;
         uint8_t brightness = config[13];
@@ -331,37 +335,35 @@ void handle_color_effect() {
         }
         return;
     }
-    if ((uint16_t)(now - lastBreathTime) > (config[CONFIG_INDEX_RGB_MODE] == 0 ? 1000 : config[CONFIG_INDEX_RGB_INTERVAL])) {
+    if ((uint16_t)(now - lastBreathTime) > config[CONFIG_INDEX_RGB_INTERVAL]) {
         lastBreathTime = now;
         switch (config[CONFIG_INDEX_RGB_MODE]) {
-            case 0:
-                update_color_by_rgb((const __xdata CRGB *)(config + 10), config[CONFIG_INDEX_RGB_BRIGHTNESS]);
-                break;
             case 1:
                 update_color_by_rgb((const __xdata CRGB *)(config + 10), currentBrightness);
-                update_value(&currentBrightness, 0, config[CONFIG_INDEX_RGB_BRIGHTNESS], config[CONFIG_INDEX_RGB_STEP], &increasing);
+                update_value(&currentBrightness, config[CONFIG_INDEX_RGB_BRIGHTNESS], config[CONFIG_INDEX_RGB_STEP], &increasing);
                 break;
             case 2:
                 currentHSVColor.v = config[CONFIG_INDEX_RGB_BRIGHTNESS];  // hsv，用 v 限制亮度
                 update_color_by_hsv(&currentHSVColor, 255);
-                update_value(&currentHSVColor.h, 0, 255, config[CONFIG_INDEX_RGB_STEP], &increasing);
+                update_value(&currentHSVColor.h, 255, config[CONFIG_INDEX_RGB_STEP], &increasing);
                 break;
         }
     }
 }
 
 void update_color_by_rgb(const __xdata CRGB* rgb, uint8_t brightness) {
-    static __xdata CRGB lastRgb = {0, 0, 0};
-    static __xdata uint8_t lastBrightness = 0;
-    if (rgb->r == lastRgb.r && rgb->g == lastRgb.g && rgb->b == lastRgb.b && brightness == lastBrightness) return;
-    lastRgb.r = rgb->r; lastRgb.g = rgb->g; lastRgb.b = rgb->b;
-    lastBrightness = brightness;
-    set_pixel_for_GRB_LED(ledData, 0, (uint16_t)rgb->r * brightness / 255U, (uint16_t)rgb->g * brightness / 255U, (uint16_t)rgb->b * brightness / 255U);
+    uint8_t r, g, b;
+    if (config[7] & 2) brightness = 0;
+    r = (uint16_t)rgb->r * brightness / 255U;
+    g = (uint16_t)rgb->g * brightness / 255U;
+    b = (uint16_t)rgb->b * brightness / 255U;
+    if (ledData[0] == g && ledData[1] == r && ledData[2] == b) return;
+    set_pixel_for_GRB_LED(ledData, 0, r, g, b);
     neopixel_show_P1_4(ledData, NUM_BYTES);
 }
 
 void update_color_by_hsv(const __xdata CHSV* hsv, uint8_t brightness) {
-    __xdata CRGB rgb = {0, 0, 0};
+    __xdata CRGB rgb; // hsv2rgb assigns all three components on every path.
     hsv2rgb(hsv, &rgb);
     update_color_by_rgb(&rgb, brightness);
 }
@@ -377,8 +379,8 @@ void eeprom_write(uint8_t addr, uint8_t value) {
 
 static const __code uint8_t storageMap[127] = {0,2,3,4,5,6,10,11,12,13,15,16,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,95,96,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136};
 uint8_t storage_byte(uint8_t index) {
-    if (index == 3) return config[4] | (config[17] << 2) | (config[53] << 4) | ((config[14] & 3) << 6);
-    if (index == 5) return config[6] | ((config[14] >> 2) << 4);
+    if (index == 3) return (config[4] & 3) | (config[17] << 2) | (config[53] << 4) | ((config[14] & 3) << 6);
+    if (index == 5) return config[6] | ((config[14] & 4) << 2) | (config[7] << 5) | ((config[4] & 4) << 3);
     if (index == 82) return config[89] | (config[94] << 1) | (config[97] << 2) | ((config[98] - 1) << 4);
     return config[storageMap[index]];
 }
@@ -409,12 +411,14 @@ void eeprom2config() {
         for (uint8_t i = 0; i < 128; ++i) backupConfig[i] = config[i];
         for (uint8_t i = 0; i < CONFIG_INDEX_LAST; ++i) config[i] = 0;
         for (uint8_t i = 0; i < 127; ++i) config[storageMap[i]] = backupConfig[i];
-        config[4] = backupConfig[3] & 3; config[17] = (backupConfig[3] >> 2) & 3;
-        config[53] = (backupConfig[3] >> 4) & 3; config[14] = (backupConfig[3] >> 6) | ((backupConfig[5] >> 4) << 2);
+        config[4] = (backupConfig[3] & 3) | ((backupConfig[5] & 32) >> 3); config[17] = (backupConfig[3] >> 2) & 3;
+        config[53] = (backupConfig[3] >> 4) & 3; config[14] = (backupConfig[3] >> 6) | ((backupConfig[5] & 16) >> 2);
+        config[7] = (backupConfig[5] >> 5) & 2;
         config[6] = backupConfig[5] & 15; config[0] = VERSION;
         config[89] = backupConfig[82] & 1; config[94] = (backupConfig[82] >> 1) & 1;
         config[97] = (backupConfig[82] >> 2) & 3; config[98] = (backupConfig[82] >> 4) + 1;
     } else {
+        config[7] = 0;
         if (version == 1 || version == 2) {
             config[5] = 20; config[6] = 0;
             for (uint8_t i = 100; i < 124; ++i) config[i] = 0;

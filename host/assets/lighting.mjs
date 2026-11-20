@@ -1,3 +1,7 @@
+import { writeOutputSwitches } from './output-switches.mjs';
+
+// UI mode 7 maps to the existing firmware light-off flag, preserving effect parameters.
+const LIGHT_OFF = 7;
 // Mirrors the firmware's full-saturation, 8-bit hue conversion.
 export function hueColor(hue) {
   const region = Math.floor(hue / 43), remainder = (hue - region * 43) * 6;
@@ -14,12 +18,15 @@ export function mountLighting(doc) {
   const $ = id => doc.getElementById(id);
   const radios = [...doc.querySelectorAll('input[name="rgb-effect"]')];
   const channels = ['r', 'g', 'b'];
-  let status = null;
+  let status = null, lastEffect = 2;
   function preview() {
     const mode = Number($('rgb-mode').value), hex = $('rgb-color').value;
     let color = mode === 2 ? 'linear-gradient(90deg,#ff4b69,#ffc940,#63df7d,#55b7ff,#be70ff)' : hex;
     let level = Number($('brightness').value);
-    if (mode >= 3) {
+    if (mode === LIGHT_OFF) {
+      level = 0;
+      $('rgb-preview-note').textContent = '灯光已关闭；选择其他灯效即可恢复。';
+    } else if (mode >= 3) {
       const valid = !!status?.[5] && !status[9];
       const light = linearLight(mode, status?.[3] || 0, level, Number($('rgb-hue-start').value), Number($('rgb-hue-end').value), hex, valid);
       color = light.color; level = light.level;
@@ -30,10 +37,12 @@ export function mountLighting(doc) {
   }
   function refresh() {
     const mode = Number($('rgb-mode').value);
+    if (mode !== LIGHT_OFF) lastEffect = mode;
     for (const radio of radios) radio.checked = Number(radio.value) === mode;
     $('rgb-channels').hidden = mode === 2 || mode >= 5;
     $('rgb-animation').hidden = mode !== 1 && mode !== 2;
-    $('rgb-hue').hidden = mode < 5;
+    $('rgb-hue').hidden = mode < 5 || mode === LIGHT_OFF;
+    $('rgb-brightness').hidden = mode === LIGHT_OFF;
     const hex = $('rgb-color').value;
     channels.forEach((channel, i) => {
       const value = parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
@@ -52,6 +61,8 @@ export function mountLighting(doc) {
   return {
     refresh,
     render(c) {
+      lastEffect = c[14];
+      $('rgb-mode').value = c[7] & 2 ? LIGHT_OFF : c[14];
       // Interval/step and hue endpoints share EEPROM bytes, but separate controls
       // keep zero hue values valid without producing an invalid interval slider.
       if (c[14] >= 5) {
@@ -60,10 +71,19 @@ export function mountLighting(doc) {
       $('rgb-interval').value = Math.max(1, c[15]); $('rgb-step').value = Math.max(1, c[16]);
       refresh();
     },
-    write(c) {
+    write(c, supportsOff = false) {
+      const off = Number($('rgb-mode').value) === LIGHT_OFF;
+      if (off && !supportsOff) throw new Error('关闭输出和灯光模式需要 V2.6.2 或更新固件。');
+      writeOutputSwitches(c, supportsOff, off);
+      if (off) c[14] = lastEffect;
       if (c[14] >= 5) { c[15] = Number($('rgb-hue-start').value); c[16] = Number($('rgb-hue-end').value); }
     },
     sample(s) { status = s; preview(); },
-    support(enabled) { for (const radio of radios) if (Number(radio.value) >= 3) radio.disabled = !enabled; }
+    support(enabled, supportsOff = false) {
+      for (const radio of radios) {
+        const mode = Number(radio.value);
+        if (mode >= 3) radio.disabled = mode === LIGHT_OFF ? !supportsOff : !enabled;
+      }
+    }
   };
 }

@@ -40,7 +40,8 @@ void linear_task(uint16_t now, uint8_t enabled) {
     uint16_t width;
     if (!HIDReady()) { linear_reset(); return; }
     if ((uint16_t)(now - lastTick) < 10) return;
-    if (!enabled || !hall.armed || hall.fault || !hall_valid()) linear_reset();
+    enabled = enabled && hall.armed && !hall.fault && hall_valid();
+    if (!enabled) linear_reset();
     if (releasing) {
         id = releasing; length = id == 4 ? 12 : id == 2 ? 4 : 1;
         report[0] = 0;
@@ -48,7 +49,7 @@ void linear_task(uint16_t now, uint8_t enabled) {
         if (!HIDSend(id, report, length)) return;
         held = releasing = mouseDown = 0; lastTick = now; return;
     }
-    if (!enabled || !hall.armed || hall.fault || !hall_valid()) return;
+    if (!enabled) return;
     preset = config[124] & 7;
     if (linearReverse && preset < 4) preset ^= 1;
     p = hall.position > config[99] ? (uint16_t)(hall.position - config[99]) * 100 / (100 - config[99]) : 0;

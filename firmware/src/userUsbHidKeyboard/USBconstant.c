@@ -9,7 +9,7 @@ __code uint8_t DevDesc[] = {
     0xEF,0x02,0x01, //bDeviceClass, bDeviceSubClass, bDeviceProtocol 
     DEFAULT_ENDP0_SIZE, //bNumConfigurations
     0x09,0x12,0x50,0xC5, // VID PID 
-    0x61,0x02,  // Application USB release 2.61; unrelated to the ROM BootLoader version
+    0x62,0x02,  // Application USB release 2.62; unrelated to the ROM BootLoader version
     0x01,0x02,0x03, //bString
     0x01    //bNumConfigurations
 };

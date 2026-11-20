@@ -1,6 +1,6 @@
 {
-  "date": "2026-11-17",
-  "application_version": "2.6.1",
+  "date": "2026-11-20",
+  "application_version": "2.6.2",
   "config_format_version": 6,
   "config_length": 137,
   "config_storage_bytes": 128,
@@ -12,21 +12,21 @@
     "sdcc": "build.13407",
     "fqbn": "CH55xDuino:mcs51:ch552:clock=24internal,usb_settings=user266"
   },
-  "flash_bytes": 14312,
+  "flash_bytes": 14316,
   "flash_limit": 14336,
-  "xram_bytes": 458,
+  "xram_bytes": 454,
   "xram_after_usb_reservation": 758,
   "hex": "firmware/build/onekeyhall-ch552-24mhz.hex",
-  "sha256": "a39243caf0e86fa66dc6659c091f4003d673730ac7ba3e66eeb82560cfef9b2a",
+  "sha256": "9af603d4d11e61f41717adfd3cff89fee966dcc4ab30067bd574b929fe15cc1f",
   "source_sha256": {
-    "firmware/firmware.ino": "508b367cc56a5f8bafa0ffc1a02bf5e3c31681c423d95b6af667d984b46b62c5",
+    "firmware/firmware.ino": "f9e9bd841c43d87a806fdb21b210fb3d7a95ff5826d0b46764f422548bbdf825",
     "firmware/src/ChipInfo.c": "729e799976a4bc003b33d2007f0ce8bc781a5661e2f8169702416e6ab9823e61",
     "firmware/src/ChipInfo.h": "431baf82d8e8d4848332982c1cd84f5e245ca94cb37f4eb820c6313873d9c025",
-    "firmware/src/FirmwareVersion.h": "4efa4996aaf5667211209e83b50081f2194d5ccda34b5f89c5fc2891832678b7",
+    "firmware/src/FirmwareVersion.h": "2dc24c46d1f5d2e824ce04fa2fc37888c52ec53580e4fdab3e561a33d873e522",
     "firmware/src/HallEngine.c": "92512f1f521051b3c5f9f2483a3514d90ee94aeed8287d089308f52e5701a53c",
     "firmware/src/HallEngine.h": "bb7104ecc8d3008e206eef69008561fcd6f5ffb60f363ed915f83b7b893db0fa",
     "firmware/src/HallHardware.h": "c3a3249da7721678ef3694d4c443ff6be5ac99dc3ec097120813f4f4d1b35b24",
-    "firmware/src/LinearEngine.c": "ce6df0fa289e5b4ff2fcc3cc7e6267a42da6a706e93cbe24abf4ec240cdc8028",
+    "firmware/src/LinearEngine.c": "fe58988cf3a95cff6f84e5aad67ac454710d204a558fe1126a343ff75e25b5a8",
     "firmware/src/LinearEngine.h": "cc7c30138bacca31db8cf93657eb31390d77f604eff8f1bca28dae5c69c4cbea",
     "firmware/src/UnusedPeripherals.c": "3e444ea5c356dd34632f227dba7c1abff4f4c0b1596b7b9766b0903ca583e660",
     "firmware/src/userUsbHidKeyboard/template/optionalLink_WS2812_P1_4.c": "9755bcd2142d5d3a476cf5571ed274bcfd1112076d8a1b67459583688b8303d4",
@@ -36,7 +36,7 @@
     "firmware/src/userUsbHidKeyboard/template/WS2812_pins_header.h": "6d114cf27d60aabbf6574a52762da54d7fb4f597bdd21d2d203c8c282caeeaa4",
     "firmware/src/userUsbHidKeyboard/USBCDC.c": "679903621899f87fb22315c0b53f0f2634d64b384cdd9f1dffe1ae991caa2551",
     "firmware/src/userUsbHidKeyboard/USBCDC.h": "7391aba3d61cb2c15975c1c6d61a05b4e89ec83037d57945a0d6af54a6f265e0",
-    "firmware/src/userUsbHidKeyboard/USBconstant.c": "9173eb2f83baddd9b0957191f7fa131007134c75b8dd3f6c5b0f393ed9ac461c",
+    "firmware/src/userUsbHidKeyboard/USBconstant.c": "3e9c7565a264ab3028b450783d3c5392994227ca75443975fad9d86d5dab327a",
     "firmware/src/userUsbHidKeyboard/USBconstant.h": "b7233b622e642bc8426e09d22aa96605cf4fd3a395ce25dfcd520e5493f5f850",
     "firmware/src/userUsbHidKeyboard/USBhandler.c": "c526cd2bd35c948d45ff8428f5e1c1b018ce54c886d1afd594c4f2f4f54bb3a4",
     "firmware/src/userUsbHidKeyboard/USBhandler.h": "e4603bbee6d3f8949196686f2b683c6b02716ee5025799a94a696f42781fe45c",
@@ -46,21 +46,23 @@
     "firmware/src/userUsbHidKeyboard/WS2812.h": "a22ba4045912e87b724f7b791026dcc43c60b139f39768bf4e8c10771482e6be",
     "scripts/build_firmware.ps1": "e7609876ba5e71552511373ce9f262544ff858ccf22a712b5d9019c8d02dce9b"
   },
-  "host_firmware_scenario_groups": 40,
-  "node_total_tests": 55,
+  "host_firmware_scenario_groups": 43,
+  "node_total_tests": 60,
   "validation": [
     "Production firmware host tests pass; Hall/RT/LED/ROM/USB/HID/text scenarios retained",
     "Optional reversal across all supported presets, two pairs of clicks, disabled/cursor behavior, release count and no automatic flash write",
     "50/1000 ms double-click windows, exact deadline, 16-bit wrap and long idle expiry; ADC/settings cancellation",
     "Production volume/wheel/touch HID reports in the mocked host harness reverse while touch still lifts at rest",
     "Opt-in persistence with names/LEDs, runtime reset, V05 migration and 13-field status",
-    "55 current Node tests: V06/legacy config, checkbox gating, reverse preview, status lengths and full bilingual serial reference coverage",
+    "60 current Node tests: V06/legacy config, checkbox gating, reverse preview, status lengths and full bilingual serial reference coverage",
     "Protocol reference commands match all firmware cases; config index ranges cover every byte 0..136 exactly once",
     "JS syntax, unique DOM ids/static app refs, isolated HTTP protocol page/assets and published HEX byte match/no-store checks passed",
     "Factory reset restores every config byte, clears count/calibration and persists across startup; capture rejection is non-mutating",
     "Factory reset releases held mouse/touch outputs and storage failures cannot revive stale settings backups",
     "Factory reset UI checks application version, requires bilingual confirmation and cancels pending auto-apply; failure propagates without retry",
-    "Static page navigation, ES module dependencies and firmware download resolve under both / and /oneKeyHall/; GitHub Pages workflow prepared, not remotely deployed."
+    "Static page navigation, ES module dependencies and firmware download resolve under both / and /oneKeyHall/; GitHub Pages workflow prepared, not remotely deployed.",
+    "Disabled output work mode: fixed/RT valid releases counted without HID across all retained linear presets; shallow travel, ADC faults and settings pauses excluded; count saved across restart; held input released and release required before resume. Independent lighting off covers all effects and command 2. Persistence, rollback, factory reset and four Node tests cover version gating, flags and mode validation.",
+    "Lighting off radio: all seven retained effects round-trip, preview stays dark, hidden parameters survive, selecting another effect clears the flag, and unsupported firmware is gated. 60 Node tests passed after this UI change."
   ],
   "manual_isp_enabled": true,
   "baud1200_entry_enabled": false,
@@ -68,7 +70,7 @@
   "hardware_verified": false,
   "actual_host_input_sent": false,
   "browser_visual_verification": "Not completed; DOM logic and static markup checked without a rendered browser",
-  "manual_isp_validation": "Previously confirmed TMOD handoff by user; 2.6.1 only compiled and host-tested. Prior host shutdown cause unresolved.",
+  "manual_isp_validation": "Previously confirmed TMOD handoff by user; 2.6.2 only compiled and host-tested. Prior host shutdown cause unresolved.",
   "bootloader_version_source": "Device ROM parsed at startup; no hardcoded version. Fixture validation is not a read of the connected device.",
   "maintenance": {
     "date": "2026-11-17",
@@ -106,7 +108,7 @@
   "documentation_audit": {
     "application_version": "2.6.1",
     "command_count": 15,
-    "scope": "Checked current documentation against source, build reports and released HEX; historical release/incident notes labeled separately. No hardware validation performed."
+    "scope": "Historical V2.6.1 checks; current V2.6.2 validation is recorded in top-level fields and docs/RELEASE_2.6.2.md."
   },
   "pages": {
     "workflow": ".github/workflows/pages.yml",
@@ -120,7 +122,8 @@
     "web_download_matches": true,
     "firmware_scenario_groups": 40,
     "node_tests_passed": 55,
-    "hardware_actions_performed": false
+    "hardware_actions_performed": false,
+    "scope": "Historical V2.6.1 checks; current V2.6.2 validation is recorded in top-level fields and docs/RELEASE_2.6.2.md."
   },
   "release_review": {
     "date": "2026-11-17",
@@ -135,6 +138,20 @@
     "browser_visual_verification_completed": false,
     "remotely_deployed": false,
     "project_code_license": "GPL-3.0-only",
-    "third_party_permissions_pending": true
+    "third_party_permissions_pending": true,
+    "scope": "Historical V2.6.1 checks; current V2.6.2 validation is recorded in top-level fields and docs/RELEASE_2.6.2.md."
+  },
+  "output_switches": {
+    "requires_version": "2.6.2",
+    "work_mode_index": 4,
+    "disabled_output_mode": 4,
+    "counts_valid_releases": true,
+    "lighting_config_index": 7,
+    "light_off_bit": 1,
+    "dataflash_byte": 5,
+    "dataflash_work_mode_high_bit": 5,
+    "dataflash_light_off_bit": 6,
+    "hardware_verified": false,
+    "lighting_ui": "Exclusive off option alongside other effects; UI value 7 maps to config[7] bit 1, retaining config[14]. Existing V2.6.2 firmware unchanged."
   }
 }

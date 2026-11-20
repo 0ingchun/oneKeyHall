@@ -27,6 +27,7 @@ export class FrameDecoder {
 
 export function validateConfig(c) {
   if (!((c.length === CONFIG_LENGTH && (c[0] === 4 || c[0] === 5 || c[0] === VERSION)) || (c.length === 124 && c[0] === 3) || (c.length === 100 && c[0] === 2)) || c.some(v => !Number.isInteger(v) || v < 0 || v > 255)) throw new Error('需要 oneKeyHall 磁轴固件；此页面不能配置旧版机械轴固件。');
+  if ((c[7] & 253)) throw new Error("Invalid output switch flags");
   if (c[0] >= 3) {
     if (c[5] < 5 || c[5] > 100 || c[6] > 12) throw new Error('双击间隔或设备名称长度无效。');
     for (let i = 0; i < c[6]; i++) {
@@ -35,7 +36,7 @@ export function validateConfig(c) {
     }
   }
   if (c[0] >= 4 && ((c[0] >= 6 ? (c[124] & 0x78) !== 0 || c[124] === 132 : c[124] > 7) || c[125] < 1 || c[125] > 100 || c[126] > c[127] || c[127] > 100 || c[128] < 1 || c[128] > 100 || c[130] > 127 || c[132] > 127 || c[133] < 1 || c[133] > c[134] || c[134] > 250 || c[135] > c[136])) throw new Error('设备线性参数超出范围。');
-  if (c[4] > 3 || c[17] > 3 || c[53] > 3 || c[14] > (c[0] >= 5 ? 6 : 2)) throw new Error('按键或灯效模式无效。');
+  if (c[4] > (c[0] >= 6 ? 4 : 3) || c[17] > 3 || c[53] > 3 || c[14] > (c[0] >= 5 ? 6 : 2)) throw new Error('按键或灯效模式无效。');
   if (c[92] < 5 || c[92] > 95 || c[93] >= c[92] || c[99] < 1 || c[99] > 10 || c[93] < c[99]) throw new Error('需要：顶部死区 ≤ 释放点 < 触发点，触发点为 5–95%。');
   if (c[94] > 1 || c[95] < 1 || c[95] > 50 || c[96] < 1 || c[96] > 50 || c[97] > 3 || c[98] < 1 || c[98] > 10) throw new Error('RT 距离、滤波或确认采样数超出范围。');
   if (c[94] && c[4] === 2) throw new Error('快速触发不能和双击模式同时开启，请选择直接使用 KEY1 或 KEY2。');
